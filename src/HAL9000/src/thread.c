@@ -167,6 +167,8 @@ ThreadSystemInitMainForCurrentCPU(
 
     ASSERT( NULL != pCpu );
 
+    memzero(mainThreadName, MAX_PATH + 1);
+
     snprintf( mainThreadName, MAX_PATH, "%s-%02x", "main", pCpu->ApicId );
 
     status = _ThreadInit(mainThreadName, ThreadPriorityDefault, &pThread, FALSE);
@@ -628,9 +630,8 @@ ThreadGetName(
     IN_OPT  PTHREAD             Thread
     )
 {
-    PTHREAD pThread = (NULL != Thread) ? Thread : GetCurrentThread();
-
-    return (NULL != pThread) ? pThread->Name : "";
+    PTHREAD pThread = Thread;
+    return pThread->Name;
 }
 
 TID
@@ -747,6 +748,8 @@ _ThreadInit(
             status = STATUS_HEAP_INSUFFICIENT_RESOURCES;
             __leave;
         }
+
+        memzero(pThread, sizeof(THREAD) * 2);
 
         RfcPreInit(&pThread->RefCnt);
 
