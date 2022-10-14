@@ -37,6 +37,9 @@ typedef struct _THREAD_SYSTEM_DATA
     _Guarded_by_(ReadyThreadsLock)
     LIST_ENTRY          ReadyThreadsList;
 
+    LOCK                NumberThreadsLock;
+
+    _Guarded_by_(NumberThreadsLock);
     QWORD               NumberOfThreads;
 } THREAD_SYSTEM_DATA, *PTHREAD_SYSTEM_DATA;
 
@@ -147,6 +150,9 @@ ThreadSystemPreinit(
 
     InitializeListHead(&m_threadSystemData.ReadyThreadsList);
     LockInit(&m_threadSystemData.ReadyThreadsLock);
+
+    m_threadSystemData.NumberOfThreads = 0;
+    LockInit(&m_threadSystemData.NumberThreadsLock);
 }
 
 STATUS
@@ -801,6 +807,10 @@ _ThreadInit(
         LockAcquire(&m_threadSystemData.AllThreadsLock, &oldIntrState);
         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
         LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
+
+        LockAcquire(&m_threadSystemData.NumberThreadsLock, &oldIntrState);
+        m_threadSystemData.NumberOfThreads++;
+        LockRelease(&m_threadSystemData.NumberThreadsLock, oldIntrState);
     }
     __finally
     {
@@ -1191,6 +1201,10 @@ _ThreadDestroy(
     LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
     RemoveEntryList(&pThread->AllList);
     LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
+
+    LockAcquire(&m_threadSystemData.NumberThreadsLock, &oldState);
+    m_threadSystemData.NumberOfThreads--;
+    LockRelease(&m_threadSystemData.NumberThreadsLock, oldState);
 
     LOG("Thread with id 0x%X and name %s was destroyed.", pThread->Id, pThread->Name);
 
