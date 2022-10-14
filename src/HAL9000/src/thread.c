@@ -810,7 +810,7 @@ _ThreadInit(
                 pThread = NULL;
             }
         }
-
+        LOG("Thread with ID 0x%X and name %s was created.\n", pThread->Id, pThread->Name);
         *Thread = pThread;
 
         LOG_FUNC_END;
@@ -1186,10 +1186,11 @@ _ThreadDestroy(
 
     ASSERT(NULL != pThread);
     ASSERT(NULL == Context);
-
     LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
     RemoveEntryList(&pThread->AllList);
     LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
+
+    LOG("Thread with id 0x%X and name %s was destroyed.", pThread->Id, pThread->Name);
 
     // This must be done before removing the thread from the process list, else
     // this may be the last thread and the process VAS will be freed by the time
