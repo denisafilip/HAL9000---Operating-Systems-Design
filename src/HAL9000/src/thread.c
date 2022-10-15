@@ -25,25 +25,7 @@ void
 
 extern FUNC_ThreadSwitch            ThreadSwitch;
 
-typedef struct _THREAD_SYSTEM_DATA
-{
-    LOCK                AllThreadsLock;
-
-    _Guarded_by_(AllThreadsLock)
-    LIST_ENTRY          AllThreadsList;
-
-    LOCK                ReadyThreadsLock;
-
-    _Guarded_by_(ReadyThreadsLock)
-    LIST_ENTRY          ReadyThreadsList;
-
-    LOCK                NumberThreadsLock;
-
-    _Guarded_by_(NumberThreadsLock);
-    QWORD               NumberOfThreads;
-} THREAD_SYSTEM_DATA, *PTHREAD_SYSTEM_DATA;
-
-static THREAD_SYSTEM_DATA m_threadSystemData;
+THREAD_SYSTEM_DATA m_threadSystemData;
 
 __forceinline
 static
@@ -152,7 +134,6 @@ ThreadSystemPreinit(
     LockInit(&m_threadSystemData.ReadyThreadsLock);
 
     m_threadSystemData.NumberOfThreads = 0;
-    LockInit(&m_threadSystemData.NumberThreadsLock);
 }
 
 STATUS
@@ -801,16 +782,14 @@ _ThreadInit(
         pThread->Id = _ThreadSystemGetNextTid();
         pThread->State = ThreadStateBlocked;
         pThread->Priority = Priority;
+        //pThread->ParentId = GetCurrentThread()->Id;
 
         LockInit(&pThread->BlockLock);
 
         LockAcquire(&m_threadSystemData.AllThreadsLock, &oldIntrState);
         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
-        LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
-
-        LockAcquire(&m_threadSystemData.NumberThreadsLock, &oldIntrState);
         m_threadSystemData.NumberOfThreads++;
-        LockRelease(&m_threadSystemData.NumberThreadsLock, oldIntrState);
+        LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
     }
     __finally
     {
@@ -1200,11 +1179,8 @@ _ThreadDestroy(
     ASSERT(NULL == Context);
     LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
     RemoveEntryList(&pThread->AllList);
-    LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
-
-    LockAcquire(&m_threadSystemData.NumberThreadsLock, &oldState);
     m_threadSystemData.NumberOfThreads--;
-    LockRelease(&m_threadSystemData.NumberThreadsLock, oldState);
+    LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
 
     LOG("Thread with id 0x%X and name %s was destroyed.", pThread->Id, pThread->Name);
 

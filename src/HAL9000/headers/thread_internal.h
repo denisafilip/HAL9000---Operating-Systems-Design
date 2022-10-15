@@ -5,6 +5,23 @@
 #include "ex_event.h"
 #include "thread.h"
 
+typedef struct _THREAD_SYSTEM_DATA
+{
+    LOCK                AllThreadsLock;
+
+    _Guarded_by_(AllThreadsLock)
+        LIST_ENTRY          AllThreadsList;
+
+    LOCK                ReadyThreadsLock;
+
+    _Guarded_by_(ReadyThreadsLock)
+        LIST_ENTRY          ReadyThreadsList;
+
+    QWORD               NumberOfThreads;
+} THREAD_SYSTEM_DATA, * PTHREAD_SYSTEM_DATA;
+
+extern THREAD_SYSTEM_DATA m_threadSystemData;
+
 typedef enum _THREAD_STATE
 {
     // currently executing on a CPU

@@ -129,6 +129,9 @@ void
 
     ASSERT(NumberOfParameters == 0);
 
+    LOG("Number of threads: 0x%X", m_threadSystemData.NumberOfThreads);
+    LOG("\n");
+
     LOG("%7s", "TID|");
     LOG("%20s", "Name|");
     LOG("%5s", "Prio|");
@@ -682,8 +685,10 @@ STATUS
 
     ASSERT( NULL != ListEntry );
     ASSERT( NULL == FunctionContext );
-
+     
     pThread = CONTAINING_RECORD(ListEntry, THREAD, AllList );
+
+    //LOG("Number of threads: 0x%X", m_threadSystemData->NumberOfThreads);
 
     LOG("%6x%c", pThread->Id, '|');
     LOG("%19s%c", pThread->Name, '|');
