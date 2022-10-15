@@ -12,7 +12,7 @@
 
 #define TID_INCREMENT               0x10
 
-#define THREAD_TIME_SLICE           1
+#define THREAD_TIME_SLICE           4
 
 extern void ThreadStart();
 
@@ -782,7 +782,6 @@ _ThreadInit(
         pThread->Id = _ThreadSystemGetNextTid();
         pThread->State = ThreadStateBlocked;
         pThread->Priority = Priority;
-        //pThread->ParentId = GetCurrentThread()->Id;
 
         LockInit(&pThread->BlockLock);
 
