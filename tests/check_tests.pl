@@ -47,7 +47,7 @@ sub CheckFile
         my $checker = open($fh, '<', $checkerFileName) ? (close $fh, "perl $checkerFileName") : "fc";
 
         # do a compare
-        system("$checker \"$resultFileName\" \"$expectedFileName\" > \"$outComefileName\"");
+        system("$checker $resultFileName $expectedFileName > $outComefileName");
 
         $result = ($? == 0);
     }
