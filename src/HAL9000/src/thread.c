@@ -321,6 +321,9 @@ ThreadCreateEx(
         return status;
     }
 
+    PTHREAD parentThread = GetCurrentThread();
+    pThread->ParentId = parentThread->Id;
+
     ProcessInsertThreadInList(Process, pThread);
 
     // the reference must be done outside _ThreadInit

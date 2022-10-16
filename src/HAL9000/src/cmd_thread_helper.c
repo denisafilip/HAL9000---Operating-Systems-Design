@@ -133,6 +133,7 @@ void
     LOG("\n");
 
     LOG("%7s", "TID|");
+    LOG("%7s", "ParentId|");
     LOG("%20s", "Name|");
     LOG("%5s", "Prio|");
     LOG("%8s", "State|");
@@ -691,6 +692,7 @@ STATUS
     //LOG("Number of threads: 0x%X", m_threadSystemData->NumberOfThreads);
 
     LOG("%6x%c", pThread->Id, '|');
+    LOG("%6x%c", pThread->ParentId, '|');
     LOG("%19s%c", pThread->Name, '|');
     LOG("%4U%c", pThread->Priority, '|');
     LOG("%7s%c", _CmdThreadStateToName(pThread->State), '|');
