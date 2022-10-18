@@ -70,6 +70,7 @@ syntax: glob
 bin/*
 temp/*
 VM/*
+src_project/*
 
 # HAL tests
 *.result
