@@ -254,6 +254,7 @@ SystemInit(
     }
 
     LOGL("ThreadSystemInitIdleForCurrentCPU succeeded\n");
+    LogSetLevel(LogLevelInfo);
 
     status = AcpiInterfaceLateInit();
     if (!SUCCEEDED(status))
