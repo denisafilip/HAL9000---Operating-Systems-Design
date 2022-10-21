@@ -169,7 +169,10 @@ ThreadSystemInitMainForCurrentCPU(
 
     snprintf( mainThreadName, MAX_PATH, "%s-%02x", "main", pCpu->ApicId );
 
-    status = _ThreadInit(mainThreadName, ThreadPriorityDefault, &pThread, FALSE);
+    //When the ASSERT is not commented out, the system does not crash, but it displays the condition where the assert failed
+    //When ASSERT is commented out, the system crashes with a Kernel Panic because it sends a NULL as the third parameter to the function
+    //_ThreadInit
+    status = _ThreadInit(mainThreadName, ThreadPriorityDefault, NULL, FALSE);
     if (!SUCCEEDED(status))
     {
         LOG_FUNC_ERROR("_ThreadInit", status );
