@@ -3,6 +3,7 @@ syntax: regexp
 
 # Bochs GUI preferences
 loader/bx_enh_dbg.ini
+src_project/
 
 # we use the glob syntax for the rest of the rules
 syntax: glob
