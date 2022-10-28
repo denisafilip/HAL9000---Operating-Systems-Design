@@ -16,6 +16,7 @@
 #include "ex_timer.h"
 #include "vmm.h"
 #include "pit.h"
+#include "semaphore.h"
 
 
 #pragma warning(push)
@@ -49,6 +50,8 @@ void
 _CmdHelperPrintThreadFunctions(
     void
     );
+
+static FUNC_IpcProcessEvent SemaphoreUpIpi;
 
 __forceinline
 static
@@ -770,6 +773,35 @@ STATUS
         ExEventWaitForSignal(&pCtx->Event);
         _ThreadBusyWait(pCtx->CpuUsage);
     }
+
+    return STATUS_SUCCESS;
+}
+
+void
+(__cdecl CmdSemaphore) (
+    IN      QWORD       NumberOfParameters
+    )
+{
+    ASSERT(NumberOfParameters == 0);
+
+    SEMAPHORE Semaphore;
+    SemaphoreInit(&Semaphore, 0);
+
+    SMP_DESTINATION dest = { 0 };
+    SmpSendGenericIpiEx(SemaphoreUpIpi, &Semaphore, NULL, NULL,
+        FALSE, SmpIpiSendToAllExcludingSelf, dest);
+
+    SemaphoreDown(&Semaphore, 1);
+}
+
+static
+STATUS
+(__cdecl SemaphoreUpIpi) (
+    IN_OPT  PVOID   Context
+    ) {
+
+    printf("Increasing the semaphore value by 1");
+    SemaphoreUp(Context, 1);
 
     return STATUS_SUCCESS;
 }

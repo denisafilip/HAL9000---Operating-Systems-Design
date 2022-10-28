@@ -106,6 +106,8 @@ static const COMMAND_DEFINITION COMMANDS[] =
     { "rangefail", "Causes a range check failure to assert", CmdRangeFail, 0, 0},
     { "bitecookie", "Causes a GS cookie corruption to assert", CmdBiteCookie, 0, 0},
 
+    {"testsemas", "Main thread creates a semaphore with value 0, then sends IPI which increments the semaphore with 1.", CmdSemaphore, 0, 0},
+
     { "help", "Displays this help menu", _CmdPrintHelp, 0, 0}
 };
 
