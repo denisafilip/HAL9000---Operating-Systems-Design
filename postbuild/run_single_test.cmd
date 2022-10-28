@@ -23,7 +23,7 @@ if /I %1==threads (
     set SUFFIX=
 )
 
-call perl execute_tests.pl %TESTS_BASE_FOLDER%\%2 %PATH_TO_LOG_FILE% %PATH_TO_VIX_TOOLS% %PATH_TO_VM_FILE% %PXE_PATH%\Tests.module /%PREFIX% /%SUFFIX% 90
+call perl C:\Users\denis\OneDrive\Documents\UTCN\anul4\sem1\OSD\lab\HALL9000\HAL9000\tests\execute_tests.pl %TESTS_BASE_FOLDER%\%2 %PATH_TO_LOG_FILE% %PATH_TO_VIX_TOOLS% %PATH_TO_VM_FILE% %PXE_PATH%\Tests.module /%PREFIX% /%SUFFIX% 90
 
 
 :end
