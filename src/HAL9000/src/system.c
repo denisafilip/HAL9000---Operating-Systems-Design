@@ -21,6 +21,7 @@
 #include "ex_system.h"
 #include "process_internal.h"
 #include "boot_module.h"
+#include "rtc.h"
 
 #define NO_OF_TSS_STACKS             7
 STATIC_ASSERT(NO_OF_TSS_STACKS <= NO_OF_IST);
@@ -58,6 +59,41 @@ SystemPreinit(
     NetworkStackPreinit();
     ProcessSystemPreinit();
 }
+
+static
+STATUS
+(__cdecl _HelloIpi)(
+    IN_OPT PVOID Context
+    )
+{
+    ASSERT(NULL != Context);
+    QWORD cpuRdtsc = (QWORD) Context;
+
+    PPCPU pCpu;
+    pCpu = GetCurrentPcpu();
+
+    ASSERT(NULL != pCpu);
+
+    LOGL("Main CPU rdtsc is %U\n", cpuRdtsc);
+
+    //Modify the code such that the 'Hello' message will be displayed only from the last processor in the system.
+    /*DWORD maxCPU = SmpGetNumberOfActiveCpus();
+    if (pCpu->ApicId == maxCPU - 1) {
+        LOGP("Hello\n");
+    }*/
+    
+    //Modify the code such that the function which displays the 'Hello' message will be 
+    //executed only on odd-indexed processors
+    /*if (pCpu->ApicId % 2 == 1) {
+        LOGP("Hello\n");
+    }*/
+
+    QWORD ownRdtsc = RtcGetTickCount();
+    LOGL("Own CPU rdtsc is %U\n", cpuRdtsc);
+    
+    return STATUS_SUCCESS;
+}
+
 
 STATUS
 SystemInit(
@@ -312,6 +348,17 @@ SystemInit(
     }
 
     LOGL("Network stack successfully initialized\n");
+
+    QWORD pCpuRdtsc = RtcGetTickCount();
+
+    SMP_DESTINATION dest = { 0 };
+    //status = SmpSendGenericIpiEx(_HelloIpi, NULL, NULL, NULL, FALSE, SmpIpiSendToAllIncludingSelf, dest);
+    status = SmpSendGenericIpiEx(_HelloIpi, (PVOID) &pCpuRdtsc, NULL, NULL, FALSE, SmpIpiSendToAllExcludingSelf, dest);
+    if (!SUCCEEDED(status))
+    {
+        LOG_FUNC_ERROR("SmpSendGenericIpi", status);
+        return status;
+    }
 
     return status;
 }
