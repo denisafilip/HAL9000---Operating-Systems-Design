@@ -41,7 +41,7 @@ Entry64(
 
     status = CpuMuSetMonitorFilterSize(sizeof(MONITOR_LOCK));
     initSettings.MonitorSupport = SUCCEEDED(status);
-
+    //__halt();  --> it is reached, therefore bug is lower
     status = CommonLibInit(&initSettings);
     if (!SUCCEEDED(status))
     {
@@ -49,12 +49,14 @@ Entry64(
         __halt();
     }
 
+    //__halt();  --> it is reached, therefore bug is lower
+
     ASSERT_INFO(1 == argc, "We are always expecting a single parameter\n");
     ASSERT_INFO(NULL != argv, "We are expecting a non-NULL pointer\n");
-
     gVirtualToPhysicalOffset = argv->VirtualToPhysicalOffset;
+    //__halt();  //--> it is reached, therfore bug is lower
     SystemPreinit();
-
+    //__halt();  //--> not reached, the OS reboots, so the bug is higher, in SystemPreinit();
     DumpParameters(argv);
 
     status = SystemInit(argv);

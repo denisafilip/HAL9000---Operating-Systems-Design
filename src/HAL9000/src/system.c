@@ -48,10 +48,14 @@ SystemPreinit(
     ThreadSystemPreinit();
     printSystemPreinit(NULL);
     LogSystemPreinit();
+    //__halt();  //--> it is reached, so bug is lower
     OsInfoPreinit();
+    //__halt(); //--> it is reached, bug is in MmuPreinitSystem()
     MmuPreinitSystem();
+    //__halt(); //--> not reached, bug is higher
     IomuPreinitSystem();
     AcpiInterfacePreinit();
+    //__halt();  //--> not reached, bug is higher
     SmpPreinit();
     PciSystemPreinit();
     CorePreinit();
