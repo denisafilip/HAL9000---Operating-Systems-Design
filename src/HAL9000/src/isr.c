@@ -144,7 +144,7 @@ _IsrExceptionHandler(
     }
 
     // no use in logging if we solved the problem
-    if (!exceptionHandled)
+    if (!exceptionHandled && GdtIsSegmentPrivileged((WORD)StackPointer->Registers.CS))
     {
         PVOID* pCurrentStackItem;
         DWORD noOfStackElementsToDump;

@@ -6,6 +6,7 @@
 #include "syscall_no.h"
 #include "mmu.h"
 #include "process_internal.h"
+#include "thread.h"
 #include "dmp_cpu.h"
 
 extern void SyscallEntry();
@@ -55,7 +56,7 @@ SyscallHandler(
         }
 
         sysCallId = usermodeProcessorState->RegisterValues[RegisterR8];
-
+        //the system call number is found in the R8 register
         LOG_TRACE_USERMODE("System call ID is %u\n", sysCallId);
 
         // The first parameter is the system call ID, we don't care about it => +1
@@ -68,6 +69,24 @@ SyscallHandler(
             status = SyscallValidateInterface((SYSCALL_IF_VERSION)*pSyscallParameters);
             break;
         // STUDENT TODO: implement the rest of the syscalls
+        case SyscallIdFileWrite:
+            status = SyscallFileWrite(
+                (UM_HANDLE)pSyscallParameters[0],
+                (PVOID)pSyscallParameters[1],
+                (QWORD)pSyscallParameters[2],
+                (QWORD)pSyscallParameters[3]
+            );
+            break;
+        case SyscallIdProcessExit:
+            status = SyscallProcessExit(
+                (STATUS)*pSyscallParameters
+            );
+            break;
+        case SyscallIdThreadExit:
+            status = SyscallThreadExit(
+                (STATUS)*pSyscallParameters
+            );
+            break;
         default:
             LOG_ERROR("Unimplemented syscall called from User-space!\n");
             status = STATUS_UNSUPPORTED;
@@ -170,3 +189,35 @@ SyscallValidateInterface(
 }
 
 // STUDENT TODO: implement the rest of the syscalls
+STATUS
+SyscallFileWrite(
+    IN  UM_HANDLE                   FileHandle,
+    IN_READS_BYTES(BytesToWrite)
+    PVOID                       Buffer,
+    IN  QWORD                       BytesToWrite,
+    OUT QWORD* BytesWritten
+)
+{
+
+    LOG("[%s]:[%s]\n", ProcessGetName(NULL), Buffer);
+    return 0;
+}
+
+
+STATUS
+SyscallProcessExit(
+    IN      STATUS                  ExitStatus
+)
+{
+    ProcessTerminate(ExitStatus);
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallThreadExit(
+    IN  STATUS                      ExitStatus
+)
+{
+    ThreadExit(ExitStatus);
+    return STATUS_SUCCESS;
+}
