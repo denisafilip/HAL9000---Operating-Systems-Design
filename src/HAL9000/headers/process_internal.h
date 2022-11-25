@@ -33,6 +33,8 @@ typedef struct _PROCESS
     // exiting thread from the process.
     STATUS                          TerminationStatus;
 
+    UM_HANDLE                       Handle;
+
     LOCK                            ThreadListLock;
 
     _Guarded_by_(ThreadListLock)

@@ -8,6 +8,8 @@ typedef DWORD SYSCALL_IF_VERSION;
 
 #define UM_FILE_HANDLE_STDOUT               (UM_HANDLE)0x1
 
+#define UM_THREAD_HANDLE_INCREMENT			4
+
 typedef QWORD UM_HANDLE;
 
 #include "mem_structures.h"

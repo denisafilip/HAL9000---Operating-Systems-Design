@@ -71,7 +71,7 @@ SystemInit(
     pCpu = NULL;
 
     LogSystemInit(LogLevelInfo,
-                  LogComponentInterrupt | LogComponentIo | LogComponentAcpi | LogComponentUserMode | LogComponentMmu,
+                  LogComponentInterrupt | LogComponentIo | LogComponentAcpi | LogComponentUserMode,
                   TRUE
                   );
 

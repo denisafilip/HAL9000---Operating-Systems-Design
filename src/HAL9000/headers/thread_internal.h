@@ -43,6 +43,7 @@ typedef struct _THREAD
     // Currently the thread priority is not used for anything
     THREAD_PRIORITY         Priority;
     THREAD_STATE            State;
+    UM_HANDLE               Handle;
 
     // valid only if State == ThreadStateTerminated
     STATUS                  ExitStatus;

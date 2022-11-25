@@ -8,6 +8,7 @@
 #include "process_internal.h"
 #include "dmp_cpu.h"
 #include "thread.h"
+#include "cpumu.h"
 #include "thread_internal.h"
 
 extern void SyscallEntry();
@@ -82,18 +83,6 @@ SyscallHandler(
                 (PVOID)pSyscallParameters[1],
                 (QWORD)pSyscallParameters[2],
                 (QWORD*)pSyscallParameters[3]
-            );
-            break;
-        case SyscallIdProcessGetNumberOfPages:
-            status = SyscallProcessGetNumberOfPages(
-                (DWORD*)pSyscallParameters[0],
-                (DWORD*)pSyscallParameters[1]
-            );
-            break;
-        case SyscallIdReadMemory:
-            status = SyscallProcessGetNumberOfPages(
-                (PBYTE)pSyscallParameters[0],
-                (PBYTE)pSyscallParameters[1]
             );
             break;
         default:
@@ -221,6 +210,84 @@ SyscallThreadExit(
 }
 
 STATUS
+SyscallThreadCreate(
+    IN      PFUNC_ThreadStart       StartFunction,
+    IN_OPT  PVOID                   Context,
+    OUT     UM_HANDLE* ThreadHandle
+)
+{
+
+    char threadName[MAX_PATH];
+    PTHREAD pThread;
+    snprintf(threadName, MAX_PATH, "generic-thread");
+    ThreadCreate(
+        threadName,
+        ThreadPriorityDefault,
+        StartFunction,
+        Context,
+        &pThread
+        );
+    //currently, the thread handle returned is a pointer to the Thread structure created
+    *ThreadHandle = (UM_HANDLE)&pThread;
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallProcessGetPid(
+    IN_OPT  UM_HANDLE               ProcessHandle,
+    OUT     PID*                    ProcessId
+)
+{
+    INTR_STATE oldState;
+    PPCPU pCpu;
+    PPROCESS requiredProcess = NULL;
+    pCpu = GetCurrentCpu();
+    ASSERT(NULL != pCpu);
+
+    if (requiredProcess == NULL) {
+        return STATUS_ELEMENT_NOT_FOUND;
+    }
+    
+    *ProcessId = ProcessGetId(requiredProcess);
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallThreadGetTid(
+    IN_OPT  UM_HANDLE               ThreadHandle,
+    OUT     TID* ThreadId
+)
+{
+    INTR_STATE oldState;
+    PPROCESS pProcess;
+    PTHREAD requiredThread = NULL;
+    pProcess = GetCurrentProcess();
+    ASSERT(NULL != pProcess);
+
+    LockAcquire(&pProcess->ThreadListLock, &oldState);
+    for (PLIST_ENTRY pEntry = pProcess->ThreadList.Flink;
+        pEntry != &pProcess->ThreadList;
+        pEntry = pEntry->Flink)
+    {
+        PTHREAD pThread = CONTAINING_RECORD(pEntry, THREAD, ProcessList);
+
+        if (pThread->Handle == ThreadHandle)
+        {
+            requiredThread = pThread;
+            break;
+        }
+    }
+    LockRelease(&pProcess->ThreadListLock, oldState);
+
+    if (requiredThread == NULL) {
+        return STATUS_ELEMENT_NOT_FOUND;
+    }
+
+    *ThreadId = ThreadGetId(requiredThread);
+    return STATUS_SUCCESS;
+}
+
+STATUS
 SyscallFileWrite(
     IN  UM_HANDLE                   FileHandle,
     IN_READS_BYTES(BytesToWrite)
@@ -241,30 +308,4 @@ SyscallFileWrite(
 
     *BytesWritten = BytesToWrite;
     return STATUS_SUCCESS;
-}
-
-STATUS
-SyscallProcessGetNumberOfPages(
-    OUT     DWORD* PagesCommitted,
-    OUT     DWORD* PagesReserved
-) {
-
-    PPROCESS process;
-    process = GetCurrentProcess();
-
-    ASSERT(NULL != process);
-
-    process->VaSpace;
-
-}
-
-STATUS
-SyscallReadMemory(
-    IN_READS(1)     PBYTE   Address,
-    OUT             PBYTE   ValueRead
-) {
-    PPROCESS process;
-    process = GetCurrentProcess();
-
-    ASSERT(NULL != process);
 }
