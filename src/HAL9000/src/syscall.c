@@ -76,26 +76,6 @@ SyscallHandler(
         case SyscallIdThreadExit:
             status = SyscallThreadExit((STATUS)*pSyscallParameters);
             break;
-        case SyscallIdFileWrite:
-            status = SyscallFileWrite(
-                (UM_HANDLE)pSyscallParameters[0],
-                (PVOID)pSyscallParameters[1],
-                (QWORD)pSyscallParameters[2],
-                (QWORD*)pSyscallParameters[3]
-            );
-            break;
-        case SyscallIdProcessGetNumberOfPages:
-            status = SyscallProcessGetNumberOfPages(
-                (DWORD*)pSyscallParameters[0],
-                (DWORD*)pSyscallParameters[1]
-            );
-            break;
-        case SyscallIdReadMemory:
-            status = SyscallProcessGetNumberOfPages(
-                (PBYTE)pSyscallParameters[0],
-                (PBYTE)pSyscallParameters[1]
-            );
-            break;
         default:
             LOG_ERROR("Unimplemented syscall called from User-space!\n");
             status = STATUS_UNSUPPORTED;
@@ -220,51 +200,4 @@ SyscallThreadExit(
     return STATUS_SUCCESS;
 }
 
-STATUS
-SyscallFileWrite(
-    IN  UM_HANDLE                   FileHandle,
-    IN_READS_BYTES(BytesToWrite)
-    PVOID                       Buffer,
-    IN  QWORD                       BytesToWrite,
-    OUT QWORD * BytesWritten
-)
-{
-    if (BytesWritten == NULL) {
-        return STATUS_UNSUCCESSFUL;
-    }
 
-    if (FileHandle == UM_FILE_HANDLE_STDOUT) {
-        *BytesWritten = BytesToWrite;
-        LOG("[%s]:[%s]\n", ProcessGetName(NULL), Buffer);
-        return STATUS_SUCCESS;
-    }
-
-    *BytesWritten = BytesToWrite;
-    return STATUS_SUCCESS;
-}
-
-STATUS
-SyscallProcessGetNumberOfPages(
-    OUT     DWORD* PagesCommitted,
-    OUT     DWORD* PagesReserved
-) {
-
-    PPROCESS process;
-    process = GetCurrentProcess();
-
-    ASSERT(NULL != process);
-
-    process->VaSpace;
-
-}
-
-STATUS
-SyscallReadMemory(
-    IN_READS(1)     PBYTE   Address,
-    OUT             PBYTE   ValueRead
-) {
-    PPROCESS process;
-    process = GetCurrentProcess();
-
-    ASSERT(NULL != process);
-}
