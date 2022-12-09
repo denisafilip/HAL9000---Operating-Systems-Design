@@ -9,6 +9,7 @@
 #include "dmp_cpu.h"
 #include "thread.h"
 #include "thread_internal.h"
+#include "vmm.h"
 
 extern void SyscallEntry();
 
@@ -76,8 +77,34 @@ SyscallHandler(
         case SyscallIdThreadExit:
             status = SyscallThreadExit((STATUS)*pSyscallParameters);
             break;
+        case SyscallIdVirtualAlloc:
+            status = SyscallVirtualAlloc(
+                (PVOID)pSyscallParameters[0],
+                (QWORD)pSyscallParameters[1],
+                (VMM_ALLOC_TYPE)pSyscallParameters[2],
+                (PAGE_RIGHTS)pSyscallParameters[3],
+                (UM_HANDLE)pSyscallParameters[4],
+                (QWORD)pSyscallParameters[5],
+                (PVOID*)pSyscallParameters[6]
+            );
+            break;
+        case SyscallIdFileWrite:
+            status = SyscallFileWrite(
+                (UM_HANDLE)pSyscallParameters[0],
+                (PVOID)pSyscallParameters[1],
+                (QWORD)pSyscallParameters[2],
+                (QWORD*)pSyscallParameters[3]
+            );
+            break;
+        case SyscallIdVirtualFree:
+            status = SyscallVirtualFree(
+                (PVOID)pSyscallParameters[0],
+                (QWORD)pSyscallParameters[1],
+                (VMM_FREE_TYPE)pSyscallParameters[2]
+            );
+            break;
         default:
-            LOG_ERROR("Unimplemented syscall called from User-space!\n");
+            LOG_ERROR("Unimplemented syscall called from User-space %d!\n", sysCallId);
             status = STATUS_UNSUPPORTED;
             break;
         }
@@ -200,4 +227,71 @@ SyscallThreadExit(
     return STATUS_SUCCESS;
 }
 
+STATUS
+SyscallVirtualAlloc(
+    IN_OPT      PVOID                   BaseAddress,
+    IN          QWORD                   Size,
+    IN          VMM_ALLOC_TYPE          AllocType,
+    IN          PAGE_RIGHTS             PageRights,
+    IN_OPT      UM_HANDLE               FileHandle,
+    IN_OPT      QWORD                   Key,
+    OUT         PVOID* AllocatedAddress
+) {
+    UNREFERENCED_PARAMETER(FileHandle);
+    UNREFERENCED_PARAMETER(Key);
 
+    *AllocatedAddress = VmmAllocRegionEx(
+        BaseAddress,
+        Size,
+        AllocType,
+        PageRights,
+        FALSE,
+        NULL,
+        GetCurrentProcess()->VaSpace,
+        GetCurrentProcess()->PagingData,
+        NULL
+    );
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallVirtualFree(
+    IN          PVOID                   Address,
+    _When_(VMM_FREE_TYPE_RELEASE == FreeType, _Reserved_)
+    _When_(VMM_FREE_TYPE_RELEASE != FreeType, IN)
+    QWORD                   Size,
+    IN          VMM_FREE_TYPE           FreeType
+)
+{
+    VmmFreeRegionEx(
+        Address,
+        Size,
+        FreeType,
+        TRUE,
+        GetCurrentProcess()->VaSpace,
+        GetCurrentProcess()->PagingData
+    );
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallFileWrite(
+    IN  UM_HANDLE                   FileHandle,
+    IN_READS_BYTES(BytesToWrite)
+    PVOID                       Buffer,
+    IN  QWORD                       BytesToWrite,
+    OUT QWORD* BytesWritten
+)
+{
+    if (BytesWritten == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
+    if (FileHandle == UM_FILE_HANDLE_STDOUT) {
+        *BytesWritten = BytesToWrite;
+        LOG("[%s]:[%s]\n", ProcessGetName(NULL), Buffer);
+        return STATUS_SUCCESS;
+    }
+
+    *BytesWritten = BytesToWrite;
+    return STATUS_SUCCESS;
+}
