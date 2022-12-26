@@ -36,9 +36,38 @@ typedef struct _THREAD_SYSTEM_DATA
 
     _Guarded_by_(ReadyThreadsLock)
     LIST_ENTRY          ReadyThreadsList;
+
+    //Review Problems - Threads - 4
+    QWORD               ReadyThreadsNumber;
+
+    QWORD               AllThreadsNumber;
+
+    QWORD               BlockedThreadsNumber;
 } THREAD_SYSTEM_DATA, *PTHREAD_SYSTEM_DATA;
 
 static THREAD_SYSTEM_DATA m_threadSystemData;
+
+//Review Problems - Threads - 4
+QWORD
+GetReadyThreadsNumber(
+
+) {
+    return m_threadSystemData.ReadyThreadsNumber;
+}
+
+QWORD
+GetBlockedThreadsNumber(
+
+) {
+    return m_threadSystemData.BlockedThreadsNumber;
+}
+
+QWORD
+GetAllThreadsNumber(
+
+) {
+    return m_threadSystemData.AllThreadsNumber;
+}
 
 __forceinline
 static
@@ -484,6 +513,8 @@ ThreadYield(
     if (pThread != pCpu->ThreadData.IdleThread)
     {
         InsertTailList(&m_threadSystemData.ReadyThreadsList, &pThread->ReadyList);
+        //Review Problems - Threads - 4
+        m_threadSystemData.ReadyThreadsNumber++;
     }
     if (!bForcedYield)
     {
@@ -518,6 +549,11 @@ ThreadBlock(
 
     pCurrentThread->TickCountEarly++;
     pCurrentThread->State = ThreadStateBlocked;
+    //Review Problems - Threads - 4
+    m_threadSystemData.BlockedThreadsNumber++;
+    if (m_threadSystemData.ReadyThreadsNumber > 0) {
+        m_threadSystemData.ReadyThreadsNumber--;
+    }
     LockAcquire(&m_threadSystemData.ReadyThreadsLock, &oldState);
     _ThreadSchedule();
     ASSERT( !LockIsOwner(&m_threadSystemData.ReadyThreadsLock));
@@ -539,6 +575,11 @@ ThreadUnblock(
 
     LockAcquire(&m_threadSystemData.ReadyThreadsLock, &dummyState);
     InsertTailList(&m_threadSystemData.ReadyThreadsList, &Thread->ReadyList);
+    //Review Problems - Threads - 4
+    m_threadSystemData.ReadyThreadsNumber++;
+    if (m_threadSystemData.BlockedThreadsNumber > 0) {
+        m_threadSystemData.BlockedThreadsNumber--;
+    }
     Thread->State = ThreadStateReady;
     LockRelease(&m_threadSystemData.ReadyThreadsLock, dummyState );
     LockRelease(&Thread->BlockLock, oldState);
@@ -561,6 +602,11 @@ ThreadExit(
     if (LockIsOwner(&pThread->BlockLock))
     {
         LockRelease(&pThread->BlockLock, INTR_OFF);
+    }
+
+    //Review Problems - Threads - 4
+    if (m_threadSystemData.BlockedThreadsNumber > 0) {
+        m_threadSystemData.BlockedThreadsNumber--;
     }
 
     //Review Problems - Threads - 2
@@ -806,6 +852,8 @@ _ThreadInit(
 
         LockAcquire(&m_threadSystemData.AllThreadsLock, &oldIntrState);
         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
+        //Review Problems - Threads - 4
+        m_threadSystemData.AllThreadsNumber++;
         LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
 
         //Review Problems - Threads - 3
@@ -1147,6 +1195,10 @@ _ThreadGetReadyThread(
     pNextThread = NULL;
 
     pEntry = RemoveHeadList(&m_threadSystemData.ReadyThreadsList);
+    //Review Problems - Threads - 4
+    if (m_threadSystemData.ReadyThreadsNumber > 0) {
+        m_threadSystemData.ReadyThreadsNumber--;
+    }
     if (pEntry == &m_threadSystemData.ReadyThreadsList)
     {
         pNextThread = GetCurrentPcpu()->ThreadData.IdleThread;
@@ -1219,6 +1271,8 @@ _ThreadDestroy(
 
     LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
     RemoveEntryList(&pThread->AllList);
+    //Review Problems - Threads - 4
+    m_threadSystemData.AllThreadsNumber--;
     LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
     
     //Review Problems - Threads - 3

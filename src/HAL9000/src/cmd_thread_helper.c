@@ -17,7 +17,6 @@
 #include "vmm.h"
 #include "pit.h"
 
-
 #pragma warning(push)
 
 // warning C4212: nonstandard extension used: function declaration used ellipsis
@@ -118,6 +117,20 @@ void
         printf("%6U%c", pCpu->PageFaults, '|' );
         printf("%14s%c", pCpu->ThreadData.CurrentThread->Name, '|');
     }
+}
+
+//Review Problems - Threads - 4
+void
+(__cdecl CmdThreadInfo)(
+    IN          QWORD       NumberOfParameters
+    )
+{
+
+    ASSERT(NumberOfParameters == 0);
+
+    LOG("\nTotal number of threads: %6x\n", GetAllThreadsNumber());
+    LOG("Number of ready threads: %6x\n", GetReadyThreadsNumber());
+    LOG("Number of blocked threads: %6x\n", GetBlockedThreadsNumber());
 }
 
 void

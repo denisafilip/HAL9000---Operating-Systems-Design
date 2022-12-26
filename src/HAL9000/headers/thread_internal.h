@@ -295,3 +295,19 @@ void
 ThreadSetPriority(
     IN      THREAD_PRIORITY     NewPriority
     );
+
+//Review Problems - Threads - 4
+QWORD
+GetReadyThreadsNumber(
+
+);
+
+QWORD
+GetBlockedThreadsNumber(
+
+);
+
+QWORD
+GetAllThreadsNumber(
+
+);
