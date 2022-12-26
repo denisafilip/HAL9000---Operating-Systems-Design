@@ -471,6 +471,9 @@ ThreadYield(
     bForcedYield = pCpu->ThreadData.YieldOnInterruptReturn;
     pCpu->ThreadData.YieldOnInterruptReturn = FALSE;
 
+    //Review Problems - Threads - 2
+    pThread->TimesYielded = pThread->TimesYielded + 1;
+
     if (THREAD_FLAG_FORCE_TERMINATE_PENDING == _InterlockedAnd(&pThread->Flags, MAX_DWORD))
     {
         _ThreadForcedExit();
@@ -559,6 +562,9 @@ ThreadExit(
     {
         LockRelease(&pThread->BlockLock, INTR_OFF);
     }
+
+    //Review Problems - Threads - 2
+    LOG("Thread [tid = 0x%X] yielded %u times\n", pThread->Id, pThread->TimesYielded);
 
     pThread->State = ThreadStateDying;
     pThread->ExitStatus = ExitStatus;
