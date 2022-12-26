@@ -47,9 +47,11 @@ _ThreadSystemGetNextTid(
     void
     )
 {
-    static volatile TID __currentTid = 0;
+    //Review Problems - Threads - 1
+    static volatile TID __currentTid = MAX_QWORD;
 
-    return _InterlockedExchangeAdd64(&__currentTid, TID_INCREMENT);
+    //return _InterlockedExchangeAdd64(&__currentTid, TID_INCREMENT);
+    return _InterlockedDecrement64(&__currentTid);
 }
 
 static
@@ -810,6 +812,9 @@ _ThreadInit(
                 pThread = NULL;
             }
         }
+        
+        //Review Problems - Threads - 1
+        LOG("Thread [tid = 0x%X] is being created\n", pThread->Id);
 
         *Thread = pThread;
 
