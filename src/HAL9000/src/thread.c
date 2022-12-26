@@ -807,6 +807,25 @@ _ThreadInit(
         LockAcquire(&m_threadSystemData.AllThreadsLock, &oldIntrState);
         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
         LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
+
+        //Review Problems - Threads - 3
+        InitializeListHead(&pThread->ChildThreadsList);
+        LockInit(&pThread->ChildThreadsListLock);
+
+        INTR_STATE oldStateCurrentThread;
+        PTHREAD currentThread = GetCurrentThread();
+
+        if (currentThread != NULL) {
+            LockAcquire(&currentThread->ChildThreadsListLock, &oldStateCurrentThread);
+            InsertTailList(&currentThread->ChildThreadsList, &pThread->ChildSelf);
+            LockRelease(&currentThread->ChildThreadsListLock, oldStateCurrentThread);
+
+            pThread->ParentThread = currentThread;
+        }
+        else {
+            pThread->ParentThread = NULL;
+        }
+
     }
     __finally
     {
@@ -1201,6 +1220,16 @@ _ThreadDestroy(
     LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
     RemoveEntryList(&pThread->AllList);
     LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
+    
+    //Review Problems - Threads - 3
+    INTR_STATE oldStateParentThread;
+    PTHREAD parentThread = pThread->ParentThread;
+
+    if (parentThread != NULL) {
+        LockAcquire(&parentThread->ChildThreadsListLock, &oldStateParentThread);
+        RemoveEntryList(&pThread->ChildSelf);
+        LockRelease(&parentThread->ChildThreadsListLock, oldStateParentThread);
+    }
 
     // This must be done before removing the thread from the process list, else
     // this may be the last thread and the process VAS will be freed by the time

@@ -92,6 +92,16 @@ typedef struct _THREAD
     //Review Problems - Threads - 2
     QWORD                   TimesYielded;
 
+    //Review Problems - Threads - 3
+    LOCK                    ChildThreadsListLock;
+
+    _Guarded_by_(ChildThreadsListLock)
+    LIST_ENTRY              ChildThreadsList;
+
+    LIST_ENTRY              ChildSelf;
+
+    struct _THREAD          *ParentThread;
+
     struct _PROCESS*        Process;
 } THREAD, *PTHREAD;
 

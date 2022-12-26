@@ -679,6 +679,8 @@ STATUS
     )
 {
     PTHREAD pThread;
+    INTR_STATE oldState;
+    LIST_ITERATOR it;
 
     ASSERT( NULL != ListEntry );
     ASSERT( NULL == FunctionContext );
@@ -693,6 +695,20 @@ STATUS
     LOG("%9U%c", pThread->TickCountEarly, '|');
     LOG("%9U%c", pThread->TickCountCompleted + pThread->TickCountEarly, '|');
     LOG("%9x%c", pThread->Process->Id, '|');
+
+    //Review Problems - Threads - 3
+    LockAcquire(&pThread->ChildThreadsListLock, &oldState);
+    ListIteratorInit(&pThread->ChildThreadsList, &it);
+    
+    LOG("\nChild threads:\n");
+    PLIST_ENTRY pEntry;
+    while ((pEntry = ListIteratorNext(&it)) != NULL)
+    {
+        PTHREAD childThread = CONTAINING_RECORD(pEntry, THREAD, ChildSelf);
+        LOG("ID: %6x%c\n", childThread->Id);
+    }
+    LockRelease(&pThread->ChildThreadsListLock, oldState);
+
     LOG("\n");
 
     return STATUS_SUCCESS;
