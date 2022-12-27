@@ -89,6 +89,7 @@ SyscallHandler(
                 (PVOID*)pSyscallParameters[6]
             );
             break;
+        //Review Problems - Userprog - 2
         case SyscallIdFileWrite:
             status = SyscallFileWrite(
                 (UM_HANDLE)pSyscallParameters[0],
@@ -277,6 +278,7 @@ SyscallVirtualFree(
     return STATUS_SUCCESS;
 }
 
+//Review Problems - Userprog - 2
 STATUS
 SyscallFileWrite(
     IN  UM_HANDLE                   FileHandle,
