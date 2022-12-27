@@ -759,6 +759,9 @@ VmmSolvePageFault(
     BOOLEAN bKernelAddress;
     QWORD bytesReadFromFile;
 
+    //Review Problems - VirtualMemory - 1
+    LOGL("Fault address is 0x%X and the rights requested are %d.\n", FaultingAddress, RightsRequested);
+
     ASSERT(INTR_OFF == CpuIntrGetState());
     ASSERT(PagingData != NULL);
 
@@ -769,6 +772,14 @@ VmmSolvePageFault(
     }
 
     bKernelAddress = _VmIsKernelAddress(FaultingAddress);
+
+    //Review Problems - VirtualMemory - 1
+    if (!bKernelAddress) {
+        PPROCESS currentProcess = GetCurrentProcess();
+        if (currentProcess != NULL) {
+            LOGL("Faulting process name: %s\n", currentProcess->ProcessName);
+        }
+    }
 
     if (bKernelAddress && !PagingData->Data.KernelSpace)
     {
