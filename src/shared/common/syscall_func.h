@@ -319,3 +319,11 @@ SyscallReadMemory(
     IN_READS(1)     PBYTE   Address,
     OUT             PBYTE   ValueRead
 );
+
+//Review Problems - Userprog - 4
+STATUS
+SyscallMemset(
+    OUT_WRITES(BytesToWrite)    PBYTE   Address,
+    IN                          DWORD   BytesToWrite,
+    IN                          BYTE    ValueToWrite
+);

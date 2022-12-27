@@ -300,3 +300,19 @@ SyscallFileWrite(
     *BytesWritten = BytesToWrite;
     return STATUS_SUCCESS;
 }
+
+//Review Problems - Userprog - 4
+STATUS
+SyscallMemset(
+    OUT_WRITES(BytesToWrite)    PBYTE   Address,
+    IN                          DWORD   BytesToWrite,
+    IN                          BYTE    ValueToWrite
+) {
+    if (Address == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    memset(Address, ValueToWrite, BytesToWrite);
+
+    return STATUS_SUCCESS;
+}

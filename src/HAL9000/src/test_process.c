@@ -10,13 +10,13 @@ const PROCESS_TEST PROCESS_TESTS[] =
     // Project 2: Userprog
 
     // arguments
-    { "TestUserArgsNone", "Args", NULL},
+   /* { "TestUserArgsNone", "Args", NULL},
     { "TestUserArgsOne", "Args", "Argument"},
     { "TestUserArgsMany", "Args", "Johnny is a good kid"},
-    { "TestUserArgsAll", "Args", "a b c d e f g h i j k l m n o p r s t u v q x y z"},
+    { "TestUserArgsAll", "Args", "a b c d e f g h i j k l m n o p r s t u v q x y z"},*/
 
     // bad-actions
-    { "BadJumpKernel", "BadJumpKernel", NULL},
+    /*{ "BadJumpKernel", "BadJumpKernel", NULL},
     { "BadJumpNoncanonical", "BadJumpNoncanonical", NULL},
     { "BadJumpNull", "BadJumpNull", NULL},
 
@@ -30,10 +30,10 @@ const PROCESS_TEST PROCESS_TESTS[] =
     { "BadWriteKernel", "BadWriteKernel", NULL},
     { "BadWriteMsr", "BadWriteMsr", NULL},
     { "BadWriteNonCanonical", "BadWriteNonCanonical", NULL},
-    { "BadWriteNull", "BadWriteNull", NULL},
+    { "BadWriteNull", "BadWriteNull", NULL},*/
 
     // file-syscalls
-    { "FileCloseBad", "FileCloseBad", NULL},
+   /* { "FileCloseBad", "FileCloseBad", NULL},
     { "FileCloseNormal", "FileCloseNormal", NULL},
     { "FileCloseStdout", "FileCloseStdout", NULL},
     { "FileCloseTwice", "FileCloseTwice", NULL},
@@ -51,10 +51,10 @@ const PROCESS_TEST PROCESS_TESTS[] =
     { "FileReadKernel", "FileReadKernel", NULL},
     { "FileReadNormal", "FileReadNormal", NULL},
     { "FileReadStdout", "FileReadStdout", NULL},
-    { "FileReadZero", "FileReadZero", NULL},
+    { "FileReadZero", "FileReadZero", NULL},*/
 
     // process-syscalls
-    { "ProcessCloseFile", "ProcessCloseFile", NULL},
+    /*{ "ProcessCloseFile", "ProcessCloseFile", NULL},
     { "ProcessCloseNormal", "ProcessCloseNormal", NULL},
     { "ProcessCloseParentHandle", "ProcessCloseParentHandle", NULL},
     { "ProcessCloseTwice", "ProcessCloseTwice", NULL},
@@ -63,18 +63,18 @@ const PROCESS_TEST PROCESS_TESTS[] =
     { "ProcessCreateMissingFile", "ProcessCreateMissingFile", NULL},
     { "ProcessCreateMultiple", "ProcessCreateMultiple", NULL},
     { "ProcessCreateOnce", "ProcessCreateOnce", NULL},
-    { "ProcessCreateWithArguments", "ProcessCreateWithArguments", NULL},
+    { "ProcessCreateWithArguments", "ProcessCreateWithArguments", NULL},*/
 
     { "ProcessExit", "ProcessExit", NULL},
-    { "ProcessGetPid", "ProcessGetPid", NULL},
+    /*{ "ProcessGetPid", "ProcessGetPid", NULL},
 
     { "ProcessWaitBadHandle", "ProcessWaitBadHandle", NULL},
     { "ProcessWaitClosedHandle", "ProcessWaitClosedHandle", NULL},
     { "ProcessWaitNormal", "ProcessWaitNormal", NULL},
-    { "ProcessWaitTerminated", "ProcessWaitTerminated", NULL},
+    { "ProcessWaitTerminated", "ProcessWaitTerminated", NULL},*/
 
     // thread-syscalls
-    { "ThreadCloseTwice", "ThreadCloseTwice", NULL},
+    /*{ "ThreadCloseTwice", "ThreadCloseTwice", NULL},
 
     { "ThreadCreateBadPointer", "ThreadCreateBadPointer", NULL},
     { "ThreadCreateMultiple", "ThreadCreateMultiple", NULL},
@@ -87,7 +87,7 @@ const PROCESS_TEST PROCESS_TESTS[] =
     { "ThreadWaitBadHandle", "ThreadWaitBadHandle", NULL},
     { "ThreadWaitClosedHandle", "ThreadWaitClosedHandle", NULL},
     { "ThreadWaitNormal", "ThreadWaitNormal", NULL},
-    { "ThreadWaitTerminated", "ThreadWaitTerminated", NULL},
+    { "ThreadWaitTerminated", "ThreadWaitTerminated", NULL},*/
 
     // Project 3: Virtual Memory
 

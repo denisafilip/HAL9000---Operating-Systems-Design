@@ -31,5 +31,8 @@ typedef enum _SYSCALL_ID
     SyscallIdProcessGetNumberOfPages,
     SyscallIdReadMemory,
 
+    //Review Problems - Userprog - 4
+    SyscallIdMemset,
+
     SyscallIdReserved = SyscallIdFileWrite + 1
 } SYSCALL_ID;

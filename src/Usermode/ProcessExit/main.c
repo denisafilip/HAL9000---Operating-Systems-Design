@@ -13,8 +13,18 @@ __main(
     UNREFERENCED_PARAMETER(argc);
     UNREFERENCED_PARAMETER(argv);
 
-    status = SyscallProcessExit(STATUS_SUCCESS);
-    LOG_ERROR("The exit function should not return!\n");
+    /*status = SyscallProcessExit(STATUS_SUCCESS);
+    LOG_ERROR("The exit function should not return!\n");*/
+
+    //Review Problems - Userprog - 4
+    BYTE   Address;
+    status = SyscallMemset(&Address,
+        1,
+        1);
+    if (!SUCCEEDED(status))
+    {
+        LOG_FUNC_ERROR("SyscallMemset", status);
+    }
 
     return STATUS_SUCCESS;
 }
