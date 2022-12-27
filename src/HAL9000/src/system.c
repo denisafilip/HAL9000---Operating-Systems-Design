@@ -332,13 +332,13 @@ SystemInit(
     LOGL("Network stack successfully initialized\n");
 
     //Review Problems - Threads - 8
-    SMP_DESTINATION dest = { 0 };
+   /* SMP_DESTINATION dest = { 0 };
     status = SmpSendGenericIpiEx(_HelloIpi, NULL, NULL, NULL, FALSE, SmpIpiSendToAllIncludingSelf, dest);
     if (!SUCCEEDED(status))
     {
         LOG_FUNC_ERROR("SmpSendGenericIpi", status);
         return status;
-    }
+    }*/
 
     return status;
 }
