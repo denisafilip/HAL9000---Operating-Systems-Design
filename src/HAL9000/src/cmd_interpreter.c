@@ -109,7 +109,10 @@ static const COMMAND_DEFINITION COMMANDS[] =
     { "help", "Displays this help menu", _CmdPrintHelp, 0, 0},
 
     //Review Problems - Threads - 4
-    {"threadinfo", "Displays the number of ready and blocked threads, and the\n total number of threads in the system", CmdThreadInfo, 0, 0}
+    {"threadinfo", "Displays the number of ready and blocked threads, and the\n total number of threads in the system", CmdThreadInfo, 0, 0},
+
+    //Review Problems - Threads - 5
+    {"displaymutex", "Display all the existing mutexes", CmdDisplayMutex, 0, 0}
 };
 
 #define NO_OF_COMMANDS      ARRAYSIZE(COMMANDS)

@@ -16,6 +16,8 @@
 #include "ex_timer.h"
 #include "vmm.h"
 #include "pit.h"
+//Review Problems - Threads - 5
+#include "mutex.h"
 
 #pragma warning(push)
 
@@ -131,6 +133,51 @@ void
     LOG("\nTotal number of threads: %6x\n", GetAllThreadsNumber());
     LOG("Number of ready threads: %6x\n", GetReadyThreadsNumber());
     LOG("Number of blocked threads: %6x\n", GetBlockedThreadsNumber());
+}
+
+//Review Problems - Threads - 5
+void
+(__cdecl CmdDisplayMutex)(
+    IN          QWORD       NumberOfParameters
+    ) 
+{
+    int mutexId = 0;
+    ASSERT(NumberOfParameters == 0);
+
+    INTR_STATE oldState;
+    LIST_ITERATOR it;
+    GLOBAL_MUTEX_DATA mutexData = GetGlobalMutexData();
+    LockAcquire(&mutexData.MutexListLock, &oldState);
+    ListIteratorInit(&mutexData.MutexList, &it);
+
+    PLIST_ENTRY pEntry;
+    while ((pEntry = ListIteratorNext(&it)) != NULL)
+    {
+        PMUTEX mutex = CONTAINING_RECORD(pEntry, MUTEX, GlobalList);
+        LOG("Found mutex...\n");
+        INTR_STATE oldStateMutex;
+        if (mutex != NULL) {
+            LIST_ITERATOR itM;
+            BOOLEAN acquired = LockTryAcquire(&mutex->MutexLock, &oldStateMutex);
+
+            if (acquired) {
+                LOG("\nThreads waiting for mutex %d:\n", mutexId);
+                mutexId++;
+                ListIteratorInit(&mutex->WaitingList, &itM);
+
+                PLIST_ENTRY pEntryM;
+                while ((pEntryM = ListIteratorNext(&itM)) != NULL)
+                {
+                    PTHREAD thread = CONTAINING_RECORD(pEntryM, THREAD, ReadyList);
+                    LOG("%6x\n", thread->Id);
+                }
+                LOG("\n");
+                LockRelease(&mutex->MutexLock, oldStateMutex);
+            }
+        }
+    }
+
+    LockRelease(&mutexData.MutexListLock, oldState);
 }
 
 void

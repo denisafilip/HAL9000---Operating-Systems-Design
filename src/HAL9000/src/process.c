@@ -116,8 +116,13 @@ ProcessSystemPreinit(
     // the value zero cannot be used when CR4.PCIDE == 1, i.e. when PCID are used
     BitmapSetBit(&m_processData.PidBitmap, 0);
 
+    //Review Problems - Threads - 5
+    GlobalMutexListInit();
+
+    LOGL("Creating a new mutex!\n");
     MutexInit(&m_processData.PidBitmapLock, FALSE);
 
+    LOGL("Creating a new mutex!\n");
     MutexInit(&m_processData.ProcessListLock, FALSE);
     InitializeListHead(&m_processData.ProcessList);
 }

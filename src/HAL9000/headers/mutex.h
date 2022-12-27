@@ -13,7 +13,34 @@ typedef struct _MUTEX
     _Guarded_by_(MutexLock)
     LIST_ENTRY          WaitingList;
     struct _THREAD*     Holder;
+
+    //Review Problems - Threads - 5
+    LIST_ENTRY          GlobalList;
 } MUTEX, *PMUTEX;
+
+
+//Review Problems - Threads - 5
+
+typedef struct _GLOBAL_MUTEX_DATA
+{
+    LOCK            MutexListLock;
+
+    _Guarded_by_(MutexListLock)
+    LIST_ENTRY      MutexList;
+} GLOBAL_MUTEX_DATA, *PGLOBAL_MUTEX_DATA;
+
+static GLOBAL_MUTEX_DATA m_GlobalMutexData;
+
+GLOBAL_MUTEX_DATA
+GetGlobalMutexData(
+    void
+);
+
+void
+_No_competing_thread_
+GlobalMutexListInit(
+    void
+);
 
 //******************************************************************************
 // Function:     MutexInit
@@ -60,3 +87,10 @@ void
 MutexRelease(
     INOUT       PMUTEX      Mutex
     );
+
+//Review Problems - Threads - 5
+_No_competing_thread_
+void
+MutexDestroy(
+    INOUT       PMUTEX      Mutex
+);

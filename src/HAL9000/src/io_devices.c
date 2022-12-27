@@ -88,6 +88,7 @@ IoCreateDevice(
 
         pDevice->StackSize = 1;
 
+        LOGL("Creating a new device!\n");
         MutexInit(&pDevice->DeviceLock, FALSE);
 
         // insert device into list
@@ -150,6 +151,10 @@ IoDeleteDevice(
 
     RemoveEntryList(&Device->NextDevice);
     pDriver->NoOfDevices = pDriver->NoOfDevices - 1;
+
+    //Review Problems - Threads - 5
+    LOGL("Destroying the created device!\n");
+    MutexDestroy(&Device->DeviceLock);
 
     if (0 != Device->DeviceExtensionSize)
     {

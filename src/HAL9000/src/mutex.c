@@ -4,6 +4,25 @@
 
 #define MUTEX_MAX_RECURSIVITY_DEPTH         MAX_BYTE
 
+//Review Problems - Threads - 5
+void
+_No_competing_thread_
+GlobalMutexListInit(
+    void
+) {
+    memzero(&m_GlobalMutexData, sizeof(GLOBAL_MUTEX_DATA));
+
+    InitializeListHead(&m_GlobalMutexData.MutexList);
+    LockInit(&m_GlobalMutexData.MutexListLock);
+}
+
+GLOBAL_MUTEX_DATA
+GetGlobalMutexData(
+    void
+) {
+    return m_GlobalMutexData;
+}
+
 _No_competing_thread_
 void
 MutexInit(
@@ -18,6 +37,12 @@ MutexInit(
     LockInit(&Mutex->MutexLock);
 
     InitializeListHead(&Mutex->WaitingList);
+
+    //Review Problems - Threads - 5
+    INTR_STATE oldState;
+    LockAcquire(&m_GlobalMutexData.MutexListLock, &oldState);
+    InsertTailList(&m_GlobalMutexData.MutexList, &Mutex->GlobalList);
+    LockRelease(&m_GlobalMutexData.MutexListLock, oldState);
 
     Mutex->MaxRecursivityDepth = Recursive ? MUTEX_MAX_RECURSIVITY_DEPTH : 1;
 }
@@ -110,4 +135,20 @@ MutexRelease(
     _Analysis_assume_lock_released_(*Mutex);
 
     LockRelease(&Mutex->MutexLock, oldState);
+}
+
+//Review Problems - Threads - 5
+_No_competing_thread_
+void
+MutexDestroy(
+    INOUT       PMUTEX      Mutex
+) {
+    ASSERT(NULL != Mutex);
+
+    INTR_STATE oldState;
+    LockAcquire(&m_GlobalMutexData.MutexListLock, &oldState);
+    RemoveEntryList(&Mutex->GlobalList);
+    LockRelease(&m_GlobalMutexData.MutexListLock, oldState);
+
+    Mutex = NULL;
 }

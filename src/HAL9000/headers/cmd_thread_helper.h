@@ -17,3 +17,6 @@ FUNC_GenericCommand CmdSpawnThreads;
 
 //Review Problems - Threads - 4
 FUNC_GenericCommand CmdThreadInfo;
+
+//Review Problems - Threads - 5
+FUNC_GenericCommand CmdDisplayMutex;
