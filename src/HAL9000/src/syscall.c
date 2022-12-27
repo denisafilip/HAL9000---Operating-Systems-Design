@@ -117,6 +117,14 @@ SyscallHandler(
                 (UM_HANDLE*)pSyscallParameters[4]
             );
             break;
+        //Review Problems - Userprog - 4
+        case SyscallIdMemset:
+            status = SyscallMemset(
+                (PBYTE)pSyscallParameters[0],
+                (DWORD)pSyscallParameters[1],
+                (BYTE)pSyscallParameters[2]
+            );
+            break;
         default:
             LOG_ERROR("Unimplemented syscall called from User-space %d!\n", sysCallId);
             status = STATUS_UNSUPPORTED;
