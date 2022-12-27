@@ -71,6 +71,7 @@ SyscallHandler(
             status = SyscallValidateInterface((SYSCALL_IF_VERSION)*pSyscallParameters);
             break;
         // STUDENT TODO: implement the rest of the syscalls
+        //Review Problems - Userprog - 1
         case SyscallIdProcessExit:
             status = SyscallProcessExit((STATUS)*pSyscallParameters);
             break;
@@ -206,6 +207,7 @@ SyscallValidateInterface(
 
 // STUDENT TODO: implement the rest of the syscalls
 
+//Review Problems - Userprog - 1
 STATUS
 SyscallProcessExit(
     IN      STATUS                  ExitStatus
@@ -218,6 +220,7 @@ SyscallProcessExit(
     return STATUS_SUCCESS; 
 }
 
+//Review Problems - Userprog - 1
 STATUS
 SyscallThreadExit(
     IN  STATUS                      ExitStatus
