@@ -80,6 +80,7 @@ SyscallHandler(
         case SyscallIdThreadExit:
             status = SyscallThreadExit((STATUS)*pSyscallParameters);
             break;
+        //Review Problems - VirtualMemory - 3
         case SyscallIdVirtualAlloc:
             status = SyscallVirtualAlloc(
                 (PVOID)pSyscallParameters[0],
@@ -283,6 +284,7 @@ SyscallThreadExit(
     return STATUS_SUCCESS;
 }
 
+//Review Problems - VirtualMemory - 3
 STATUS
 SyscallVirtualAlloc(
     IN_OPT      PVOID                   BaseAddress,
@@ -295,6 +297,10 @@ SyscallVirtualAlloc(
 ) {
     UNREFERENCED_PARAMETER(FileHandle);
     UNREFERENCED_PARAMETER(Key);
+
+    if (AllocatedAddress == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
 
     *AllocatedAddress = VmmAllocRegionEx(
         BaseAddress,
