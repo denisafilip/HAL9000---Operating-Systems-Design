@@ -22,6 +22,9 @@
 #include "process_internal.h"
 #include "boot_module.h"
 
+
+#pragma warning(disable : 4127)
+
 #define NO_OF_TSS_STACKS             7
 STATIC_ASSERT(NO_OF_TSS_STACKS <= NO_OF_IST);
 
@@ -57,6 +60,21 @@ SystemPreinit(
     CorePreinit();
     NetworkStackPreinit();
     ProcessSystemPreinit();
+}
+
+//Review Problems - Threads - 8
+static
+STATUS
+(__cdecl _HelloIpi)(
+    IN_OPT PVOID Context
+    )
+{
+    UNREFERENCED_PARAMETER(Context);
+
+    LOGP("Hello there!\n");
+    while (TRUE);
+
+    return STATUS_SUCCESS;
 }
 
 STATUS
@@ -312,6 +330,15 @@ SystemInit(
     }
 
     LOGL("Network stack successfully initialized\n");
+
+    //Review Problems - Threads - 8
+    SMP_DESTINATION dest = { 0 };
+    status = SmpSendGenericIpiEx(_HelloIpi, NULL, NULL, NULL, FALSE, SmpIpiSendToAllIncludingSelf, dest);
+    if (!SUCCEEDED(status))
+    {
+        LOG_FUNC_ERROR("SmpSendGenericIpi", status);
+        return status;
+    }
 
     return status;
 }
