@@ -878,7 +878,7 @@ VmmSolvePageFault(
     QWORD bytesReadFromFile;
 
     //Review Problems - VirtualMemory - 1
-    LOGL("Fault address is 0x%X and the rights requested are %d.\n", FaultingAddress, RightsRequested);
+    /*LOGL("Fault address is 0x%X and the rights requested are %d.\n", FaultingAddress, RightsRequested);*/
 
     ASSERT(INTR_OFF == CpuIntrGetState());
     ASSERT(PagingData != NULL);
