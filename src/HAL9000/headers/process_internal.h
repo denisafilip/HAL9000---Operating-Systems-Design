@@ -70,6 +70,12 @@ typedef struct _PROCESS
     LIST_ENTRY                  ChildProcessesList;
 
     struct _PROCESS*            ParentProcess;
+
+    //Review Problems - VirtualMemory - 4
+    LOCK                            FrameMapLock;
+
+    _Guarded_by_(FrameMapLock)
+    LIST_ENTRY                      FrameMappingsHead;
 } PROCESS, *PPROCESS;
 
 //******************************************************************************

@@ -7,6 +7,7 @@
 #include "bitmap.h"
 #include "pte.h"
 #include "pe_exports.h"
+#include "vmm.h"
 
 typedef struct _PROCESS_SYSTEM_DATA
 {
@@ -516,6 +517,10 @@ _ProcessInit(
         InitializeListHead(&pProcess->ChildProcessesList);
         LockInit(&pProcess->ChildProcessesListLock);
 
+        //Review Problems - VirtualMemory - 4
+        InitializeListHead(&pProcess->FrameMappingsHead);
+        LockInit(&pProcess->FrameMapLock);
+
         // Do this as late as possible - we want to interfere as little as possible
         // with the system management in case something goes wrong (PID + full process
         // list management)
@@ -731,6 +736,23 @@ _ProcessDestroy(
     ASSERT(Process->NumberOfThreads == 0);
 
     LOG_TRACE_PROCESS("Will destroy process with PID 0x%X\n", Process->Id);
+
+    //Review Problems - VirtualMemory - 4
+    INTR_STATE oldState;
+    LIST_ITERATOR it;
+
+    LockAcquire(&Process->FrameMapLock, &oldState);
+    ListIteratorInit(&Process->FrameMappingsHead, &it);
+
+    PLIST_ENTRY pEntry;
+    while ((pEntry = ListIteratorNext(&it)) != NULL)
+    {
+        PFRAME_MAPPING frameMapping = CONTAINING_RECORD(pEntry, FRAME_MAPPING, ListEntry);
+
+        LOGL("Frame mapping from physical address 0x%x to virtual address 0x%x.\n", 
+            frameMapping->PhysicalAddress, frameMapping->VirtualAddress);
+    }
+    LockRelease(&Process->FrameMapLock, oldState);
 
     // It's ok to use the remove entry list function because when we create the process we call
     // InitializeListHead => the RemoveEntryList has no problem with an empty list as long as it

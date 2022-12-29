@@ -97,6 +97,51 @@ static FUNC_PageWalkCallback            _VmMapPage;
 static FUNC_PageWalkCallback            _VmUnmapPage;
 static FUNC_PageWalkCallback            _VmRetrievePhyAccess;
 
+//Review Problems - VirtualMemory - 4
+static
+void
+_VmmAddFrameMappings(
+    IN          PHYSICAL_ADDRESS    PhysicalAddress,
+    IN          PVOID               VirtualAddress,
+    IN          DWORD               FrameCount
+);
+
+static
+void
+_VmmAddFrameMappings(
+    IN          PHYSICAL_ADDRESS    PhysicalAddress,
+    IN          PVOID               VirtualAddress,
+    IN          DWORD               FrameCount
+)
+{
+    PPROCESS pProcess;
+    PFRAME_MAPPING pMapping;
+    INTR_STATE intrState;
+
+    pProcess = GetCurrentProcess();
+
+    if (ProcessIsSystem(pProcess))
+    {
+        return;
+    }
+
+    for (DWORD i = 0; i < FrameCount; ++i)
+    {
+        pMapping = ExAllocatePoolWithTag(PoolAllocatePanicIfFail, sizeof(FRAME_MAPPING), HEAP_MMU_TAG, 0);
+
+        pMapping->PhysicalAddress = PtrOffset(PhysicalAddress, i * PAGE_SIZE);
+        pMapping->VirtualAddress = PtrOffset(VirtualAddress, i * PAGE_SIZE);
+        pMapping->AccessCount = 1;
+
+        LockAcquire(&pProcess->FrameMapLock, &intrState);
+        InsertTailList(&pProcess->FrameMappingsHead, &pMapping->ListEntry);
+        LockRelease(&pProcess->FrameMapLock, intrState);
+
+        LOG("Allocated entry from 0x%X -> 0x%X\n",
+            pMapping->VirtualAddress, pMapping->PhysicalAddress);
+    }
+}
+
 __forceinline
 static
 PHYSICAL_ADDRESS
@@ -621,6 +666,12 @@ VmmAllocRegionEx(
                                      PagingData
                 );
 
+                //Review Problems - VirtualMemory - 4
+                if (PagingData != NULL && !PagingData->Data.KernelSpace)
+                {
+                    _VmmAddFrameMappings(pa, pBaseAddress, noOfFrames);
+                }
+
                 // Check if the mapping is backed up by a file
                 if (FileObject != NULL)
                 {
@@ -695,6 +746,32 @@ VmmAllocRegionEx(
     return pBaseAddress;
 }
 
+//Review Problems - VirtualMemory - 4
+static
+STATUS
+(__cdecl _SearchFrameInProcessList)(
+    IN       PLIST_ENTRY     ListEntry,
+    IN_OPT   PVOID           Context
+    ) {
+    ASSERT(Context != NULL);
+    ASSERT(NULL != ListEntry);
+
+    PVOID* FrameContext = (PVOID*)Context;
+    PVOID pVirtualAddress = (PVOID)FrameContext[0];
+
+    PFRAME_MAPPING CurrentFrame = CONTAINING_RECORD(ListEntry, FRAME_MAPPING, ListEntry);
+
+    if (AlignAddressLower(CurrentFrame->VirtualAddress, PAGE_SIZE) == AlignAddressLower(pVirtualAddress, PAGE_SIZE)) {
+        FrameContext[1] = CurrentFrame;
+
+        //LOG("Found frame with pa %x and va %x\n", CurrentFrame->PhysicalAddress, CurrentFrame->VirtualAddress);
+
+        return STATUS_ELEMENT_FOUND;
+    }
+
+    return STATUS_SUCCESS;
+}
+
 void
 VmmFreeRegionEx(
     IN      PVOID                   Address,
@@ -738,6 +815,47 @@ VmmFreeRegionEx(
                          alignedSize,
                          Release,
                          PagingData);
+    }
+
+
+    //Review Problems - VirtualMemory - 4
+    if (VaSpace != NULL) {
+        PPROCESS pProcess = VaSpace->Process;
+        if (pProcess != NULL) {
+            INTR_STATE oldState;
+
+            PVOID* Context = ExAllocatePoolWithTag(
+                PoolAllocateZeroMemory,
+                2 * sizeof(PVOID),
+                HEAP_TEMP_TAG,
+                0
+            );
+
+            Context[0] = alignedAddress;
+            Context[1] = NULL;
+
+            LockAcquire(&pProcess->FrameMapLock, &oldState);
+
+            ForEachElementExecute(
+                &pProcess->FrameMappingsHead,
+                _SearchFrameInProcessList,
+                Context,
+                FALSE
+            );
+
+            LockRelease(&pProcess->FrameMapLock, oldState);
+
+            if (Context[1] != NULL) {
+                PFRAME_MAPPING FrameToRemove = (PFRAME_MAPPING)Context[1];
+                LOG("Deleting frame with pa %x and va %x\n", FrameToRemove->PhysicalAddress, FrameToRemove->VirtualAddress);
+                RemoveEntryList(&FrameToRemove->ListEntry);
+
+                ExFreePoolWithTag(FrameToRemove, HEAP_TEMP_TAG);
+
+            }
+
+            ExFreePoolWithTag(Context, HEAP_TEMP_TAG);
+        }
     }
 }
 
@@ -836,6 +954,12 @@ VmmSolvePageFault(
                                  uncacheable,
                                  PagingData
                                  );
+
+            //Review Problems - VirtualMemory - 4
+            if (!PagingData->Data.KernelSpace)
+            {
+                _VmmAddFrameMappings(pa, alignedAddress, 1);
+            }
 
             // 3. If the virtual address is backed by a file read its contents
             if (pBackingFile != NULL)

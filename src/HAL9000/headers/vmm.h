@@ -9,6 +9,17 @@ typedef struct _VMM_RESERVATION_SPACE* PVMM_RESERVATION_SPACE;
 
 typedef struct _MDL *PMDL;
 
+//Review Problems - VirtualMemory - 4
+typedef struct _FRAME_MAPPING
+{
+    PHYSICAL_ADDRESS    PhysicalAddress;
+    PVOID               VirtualAddress;
+
+    QWORD               AccessCount;
+
+    LIST_ENTRY          ListEntry;
+} FRAME_MAPPING, * PFRAME_MAPPING;
+
 _No_competing_thread_
 void
 VmmPreinit(
