@@ -193,8 +193,12 @@ PmmReserveMemoryEx(
     }
 
     bSystemProcess = (pCurrentProcess == NULL) || ProcessIsSystem(pCurrentProcess);
+    
+    //Review Problems - VirtualMemory - 2
+    LOG("Reserved %d physical frames, from 0x%X to 0x%x!\n",
+        NoOfFrames, ((QWORD)idx * PAGE_SIZE), ((QWORD)(idx * PAGE_SIZE + NoOfFrames * PAGE_SIZE)));
 
-   /* LOG("Reserved physical frames from 0x%X of size 0x%X on behalf of [%s] process\n",
+    /*LOG("Reserved physical frames from 0x%X of size 0x%X on behalf of [%s] process\n",
         idx * PAGE_SIZE, ((QWORD)NoOfFrames * PAGE_SIZE),
         bSystemProcess ? "SYSTEM" : ProcessGetName(pCurrentProcess));*/
 
