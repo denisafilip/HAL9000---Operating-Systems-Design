@@ -34,5 +34,8 @@ typedef enum _SYSCALL_ID
     //Review Problems - Userprog - 4
     SyscallIdMemset,
 
+    //Review Problems - Userprog - 6
+    SyscallIdDisableSyscalls,
+
     SyscallIdReserved = SyscallIdFileWrite + 1
 } SYSCALL_ID;

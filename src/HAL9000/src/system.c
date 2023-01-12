@@ -21,6 +21,7 @@
 #include "ex_system.h"
 #include "process_internal.h"
 #include "boot_module.h"
+#include "syscall_defs.h"
 
 
 #pragma warning(disable : 4127)
@@ -49,6 +50,7 @@ SystemPreinit(
     BootModulesPreinit();
     DumpPreinit();
     ThreadSystemPreinit();
+    SyscallEnablePreinit();
     printSystemPreinit(NULL);
     LogSystemPreinit();
     OsInfoPreinit();

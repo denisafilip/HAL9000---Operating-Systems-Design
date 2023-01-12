@@ -854,7 +854,9 @@ VmmFreeRegionEx(
 
             }
 
-            ExFreePoolWithTag(Context, HEAP_TEMP_TAG);
+            if (Context != NULL) {
+                ExFreePoolWithTag(Context, HEAP_TEMP_TAG);
+            }
         }
     }
 }

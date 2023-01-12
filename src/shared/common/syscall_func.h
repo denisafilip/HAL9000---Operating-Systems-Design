@@ -327,3 +327,11 @@ SyscallMemset(
     IN                          DWORD   BytesToWrite,
     IN                          BYTE    ValueToWrite
 );
+
+//Review Problems - Userprog - 6
+// When Disable == TRUE => all system calls except SyscallDisableSyscalls will fail 
+// When Disable == FALSE => all system calls work normally 
+STATUS 
+SyscallDisableSyscalls( 
+    IN BOOLEAN Disable 
+);

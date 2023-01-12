@@ -15,6 +15,28 @@
 
 extern void SyscallEntry();
 
+//Review Problems - Userprog - 6
+typedef struct _SYSCALL_ENABLER {
+    LOCK                    EnableLock;
+
+    _Guarded_by_(EnableLock)
+    BOOLEAN                 SyscallsDisabled;
+} SYSCALL_ENABLER, *PSYSCALL_ENABLER;
+
+static SYSCALL_ENABLER m_SyscallEnabler;
+
+void
+_No_competing_thread_
+SyscallEnablePreinit(
+    void
+)
+{
+    memzero(&m_SyscallEnabler, sizeof(SYSCALL_ENABLER));
+
+    m_SyscallEnabler.SyscallsDisabled = FALSE;
+    LockInit(&m_SyscallEnabler.EnableLock);
+}
+
 #define SYSCALL_IF_VERSION_KM       SYSCALL_IMPLEMENTED_IF_VERSION
 
 void
@@ -126,6 +148,12 @@ SyscallHandler(
                 (BYTE)pSyscallParameters[2]
             );
             break;
+        //Review Problems - Userprog - 6
+        case SyscallIdDisableSyscalls:
+            status = SyscallDisableSyscalls(
+                (BOOLEAN)*pSyscallParameters
+            );
+            break;
         default:
             LOG_ERROR("Unimplemented syscall called from User-space %d!\n", sysCallId);
             status = STATUS_UNSUPPORTED;
@@ -209,12 +237,30 @@ SyscallCpuInit(
     LOG_TRACE_USERMODE("Successfully set STAR to 0x%X\n", starMsr.Raw);
 }
 
+//Review Problems - Userprog - 6
+BOOLEAN
+AreSyscallsDisabled(
+) {
+    INTR_STATE oldState;
+    BOOLEAN disabled;
+
+    LockAcquire(&m_SyscallEnabler.EnableLock, &oldState);
+    disabled = m_SyscallEnabler.SyscallsDisabled;
+    LockRelease(&m_SyscallEnabler.EnableLock, oldState);
+    return disabled;
+}
+
 // SyscallIdIdentifyVersion
 STATUS
 SyscallValidateInterface(
     IN  SYSCALL_IF_VERSION          InterfaceVersion
 )
 {
+    //Review Problems - Userprog - 6
+    if (AreSyscallsDisabled()) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     LOG_TRACE_USERMODE("Will check interface version 0x%x from UM against 0x%x from KM\n",
         InterfaceVersion, SYSCALL_IF_VERSION_KM);
 
@@ -235,6 +281,11 @@ SyscallProcessExit(
     IN      STATUS                  ExitStatus
 )
 {
+    //Review Problems - Userprog - 6
+    if (AreSyscallsDisabled()) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     LOGL("Exiting a process.\n");
     PPROCESS Process;
     Process = GetCurrentProcess();
@@ -280,6 +331,11 @@ SyscallThreadExit(
     IN  STATUS                      ExitStatus
 )
 {
+    //Review Problems - Userprog - 6
+    if (AreSyscallsDisabled()) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     ThreadExit(ExitStatus);
     return STATUS_SUCCESS;
 }
@@ -295,6 +351,11 @@ SyscallVirtualAlloc(
     IN_OPT      QWORD                   Key,
     OUT         PVOID* AllocatedAddress
 ) {
+    //Review Problems - Userprog - 6
+    if (AreSyscallsDisabled()) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     UNREFERENCED_PARAMETER(FileHandle);
     UNREFERENCED_PARAMETER(Key);
 
@@ -325,6 +386,11 @@ SyscallVirtualFree(
     IN          VMM_FREE_TYPE           FreeType
 )
 {
+    //Review Problems - Userprog - 6
+    if (AreSyscallsDisabled()) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     VmmFreeRegionEx(
         Address,
         Size,
@@ -346,6 +412,11 @@ SyscallFileWrite(
     OUT QWORD* BytesWritten
 )
 {
+    //Review Problems - Userprog - 6
+    if (AreSyscallsDisabled()) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     if (BytesWritten == NULL) {
         return STATUS_UNSUCCESSFUL;
     }
@@ -366,6 +437,11 @@ SyscallMemset(
     IN                          DWORD   BytesToWrite,
     IN                          BYTE    ValueToWrite
 ) {
+    //Review Problems - Userprog - 6
+    if (AreSyscallsDisabled()) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     if (Address == NULL) {
         return STATUS_UNSUCCESSFUL;
     }
@@ -386,6 +462,11 @@ SyscallProcessCreate(
     IN          QWORD               ArgLength,
     OUT         UM_HANDLE* ProcessHandle
 ) {
+    //Review Problems - Userprog - 6
+    if (AreSyscallsDisabled()) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
     STATUS status = STATUS_SUCCESS;
     if (ProcessPath == NULL) {
         return STATUS_UNSUCCESSFUL;
@@ -444,4 +525,18 @@ SyscallProcessCreate(
 
     *ProcessHandle = newProcess->Id;
     return status;
+}
+
+//Review Problems - Userprog - 6
+STATUS
+SyscallDisableSyscalls(
+    IN BOOLEAN Disable
+) {
+    INTR_STATE oldState;
+
+    LockAcquire(&m_SyscallEnabler.EnableLock, &oldState);
+    m_SyscallEnabler.SyscallsDisabled = Disable;
+    LockRelease(&m_SyscallEnabler.EnableLock, oldState);
+
+    return STATUS_SUCCESS;
 }

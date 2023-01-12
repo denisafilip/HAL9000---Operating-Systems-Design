@@ -29,6 +29,7 @@ ExSystemTimerTick(
         while ((pEntry = ListIteratorNext(&it)) != NULL)
         {
             PFRAME_MAPPING frameMapping = CONTAINING_RECORD(pEntry, FRAME_MAPPING, ListEntry);
+
             BOOLEAN bAccessed = FALSE;
             BOOLEAN bDirty = FALSE;
 

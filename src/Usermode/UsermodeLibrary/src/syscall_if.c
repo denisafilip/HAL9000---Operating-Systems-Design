@@ -206,3 +206,11 @@ SyscallMemset(
 ) {
     return SyscallEntry(SyscallIdMemset, Address, BytesToWrite, ValueToWrite);
 }
+
+//Review Problems - Userprog - 6
+STATUS
+SyscallDisableSyscalls(
+    IN BOOLEAN Disable
+) {
+    return SyscallEntry(SyscallIdDisableSyscalls, Disable);
+}

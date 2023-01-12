@@ -10,6 +10,12 @@ typedef DWORD SYSCALL_IF_VERSION;
 
 typedef QWORD UM_HANDLE;
 
+void
+_No_competing_thread_
+SyscallEnablePreinit(
+    void
+);
+
 #include "mem_structures.h"
 #include "thread_defs.h"
 #include "process_defs.h"
