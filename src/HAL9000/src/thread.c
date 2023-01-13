@@ -8,6 +8,7 @@
 #include "process_internal.h"
 #include "isr.h"
 #include "gdtmu.h"
+#include "iomu.h"
 #include "pe_exports.h"
 
 #define TID_INCREMENT               4
@@ -36,6 +37,12 @@ typedef struct _THREAD_SYSTEM_DATA
 
     _Guarded_by_(ReadyThreadsLock)
     LIST_ENTRY          ReadyThreadsList;
+
+    // Threads - 1
+    LOCK                CreateTimeThreadsLock;
+
+    _Guarded_by_(CreateTimeThreadsLock)
+    LIST_ENTRY          CreateTimeThreadsList;
 } THREAD_SYSTEM_DATA, *PTHREAD_SYSTEM_DATA;
 
 static THREAD_SYSTEM_DATA m_threadSystemData;
@@ -132,6 +139,9 @@ _ThreadKernelFunction(
 
 static FUNC_ThreadStart     _IdleThread;
 
+// Threads - 1
+static FUNC_CompareFunction ThreadCompareCreationTime;
+
 void
 _No_competing_thread_
 ThreadSystemPreinit(
@@ -145,6 +155,10 @@ ThreadSystemPreinit(
 
     InitializeListHead(&m_threadSystemData.ReadyThreadsList);
     LockInit(&m_threadSystemData.ReadyThreadsLock);
+
+    // Threads - 1
+    InitializeListHead(&m_threadSystemData.CreateTimeThreadsList);
+    LockInit(&m_threadSystemData.CreateTimeThreadsLock);
 }
 
 STATUS
@@ -793,12 +807,20 @@ _ThreadInit(
         pThread->Id = _ThreadSystemGetNextTid();
         pThread->State = ThreadStateBlocked;
         pThread->Priority = Priority;
+        // Threads - 1
+        pThread->CreationTime = IomuGetSystemTimeUs();
 
         LockInit(&pThread->BlockLock);
 
         LockAcquire(&m_threadSystemData.AllThreadsLock, &oldIntrState);
         InsertTailList(&m_threadSystemData.AllThreadsList, &pThread->AllList);
         LockRelease(&m_threadSystemData.AllThreadsLock, oldIntrState);
+
+        // Threads - 1
+        INTR_STATE oldStateCreate;
+        LockAcquire(&m_threadSystemData.CreateTimeThreadsLock, &oldStateCreate);
+        InsertOrderedList(&m_threadSystemData.CreateTimeThreadsList, &pThread->CreationList, ThreadCompareCreationTime, NULL);
+        LockRelease(&m_threadSystemData.CreateTimeThreadsLock, oldStateCreate);
     }
     __finally
     {
@@ -817,6 +839,31 @@ _ThreadInit(
     }
 
     return status;
+}
+
+// Threads - 1
+static
+INT64
+(__cdecl ThreadCompareCreationTime) (
+    IN          PLIST_ENTRY         e1,
+    IN          PLIST_ENTRY         e2,
+    IN_OPT      PVOID               Context
+    ) {
+    ASSERT(NULL != e1);
+    ASSERT(NULL != e2);
+    ASSERT(Context == NULL);
+
+    PTHREAD pTh1;
+    pTh1 = CONTAINING_RECORD(e1, THREAD, AllList);
+
+    PTHREAD pTh2;
+    pTh2 = CONTAINING_RECORD(e2, THREAD, AllList);
+
+    QWORD creationTimeTh1 = pTh1->CreationTime;
+    QWORD creationTimeTh2 = pTh2->CreationTime;
+
+    //compare and return result
+    return (creationTimeTh2 - creationTimeTh1);
 }
 
 //  STACK TOP
@@ -1191,6 +1238,12 @@ _ThreadDestroy(
     LockAcquire(&m_threadSystemData.AllThreadsLock, &oldState);
     RemoveEntryList(&pThread->AllList);
     LockRelease(&m_threadSystemData.AllThreadsLock, oldState);
+
+    // Threads - 1
+    INTR_STATE oldStateCreate;
+    LockAcquire(&m_threadSystemData.CreateTimeThreadsLock, &oldStateCreate);
+    RemoveEntryList(&pThread->CreationList);
+    LockRelease(&m_threadSystemData.CreateTimeThreadsLock, oldStateCreate);
 
     // This must be done before removing the thread from the process list, else
     // this may be the last thread and the process VAS will be freed by the time

@@ -90,6 +90,11 @@ typedef struct _THREAD
     PVOID                   UserStack;
 
     struct _PROCESS*        Process;
+
+    // Threads - 1
+    QWORD                   CreationTime;
+
+    LIST_ENTRY              CreationList;
 } THREAD, *PTHREAD;
 
 //******************************************************************************
