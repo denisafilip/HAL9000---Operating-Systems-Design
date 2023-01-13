@@ -70,12 +70,14 @@ SyscallHandler(
             status = SyscallValidateInterface((SYSCALL_IF_VERSION)*pSyscallParameters);
             break;
         // STUDENT TODO: implement the rest of the syscalls
+        // Userprog - 1
         case SyscallIdProcessExit:
             status = SyscallProcessExit((STATUS)*pSyscallParameters);
             break;
         case SyscallIdThreadExit:
             status = SyscallThreadExit((STATUS)*pSyscallParameters);
             break;
+        // Userprog - 2
         case SyscallIdFileWrite:
             status = SyscallFileWrite(
                 (UM_HANDLE)pSyscallParameters[0],
@@ -186,6 +188,7 @@ SyscallValidateInterface(
 }
 
 // STUDENT TODO: implement the rest of the syscalls
+// Userprog - 1
 STATUS
 SyscallProcessExit(
     IN      STATUS                  ExitStatus
@@ -207,6 +210,7 @@ SyscallThreadExit(
     return STATUS_SUCCESS;
 }
 
+// Userprog - 2
 STATUS
 SyscallFileWrite(
     IN  UM_HANDLE                   FileHandle,
