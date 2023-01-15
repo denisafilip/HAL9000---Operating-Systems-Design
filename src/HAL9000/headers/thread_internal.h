@@ -95,6 +95,14 @@ typedef struct _THREAD
     QWORD                   CreationTime;
 
     LIST_ENTRY              CreationList;
+
+    // Threads - 2
+    LOCK                    DescendentsLock;
+
+    _Guarded_by_(DescendentsLock)
+    QWORD                   NoOfDescendents;
+
+    struct _THREAD*         ParentThread;
 } THREAD, *PTHREAD;
 
 //******************************************************************************

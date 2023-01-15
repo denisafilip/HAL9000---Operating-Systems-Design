@@ -16,6 +16,7 @@
 #include "ex_timer.h"
 #include "vmm.h"
 #include "pit.h"
+#include "cl_string.h"
 
 
 #pragma warning(push)
@@ -118,6 +119,137 @@ void
         printf("%6U%c", pCpu->PageFaults, '|' );
         printf("%14s%c", pCpu->ThreadData.CurrentThread->Name, '|');
     }
+}
+
+// Threads - 3
+PFUNC_ThreadStart
+DummyThreadFunction(
+    void
+) {
+    return 0;
+}
+
+PFUNC_ThreadStart
+CreateTenThreads(
+    void
+) {
+    STATUS status = STATUS_SUCCESS;
+    PPROCESS Process = GetCurrentProcess();
+
+    if (Process == NULL) {
+        status = STATUS_UNSUCCESSFUL;
+    }
+    ASSERT(SUCCEEDED(status));
+    #pragma warning(suppress:4244)
+
+    for (int i = 0; i < 10; i++) {
+        char name[8];
+        snprintf(name, 8, "thread%d", i);
+        //char name[7] = { 't', 'h', 'r', 'e', 'a', 'd', '0'};
+        //name[6] = (char) (i + '0');
+        PTHREAD pThread;
+        status = ThreadCreateEx(name,
+            ThreadPriorityDefault,
+            (PFUNC_ThreadStart)DummyThreadFunction,
+            NULL,
+            &pThread,
+            Process);
+        ASSERT(SUCCEEDED(status));
+    }
+    return 0;
+}
+
+PFUNC_ThreadStart
+CreateAdditionalChildThread(
+    void
+) {
+    STATUS status = STATUS_SUCCESS;
+    PPROCESS Process = GetCurrentProcess();
+
+    if (Process == NULL) {
+        status = STATUS_UNSUCCESSFUL;
+    }
+    ASSERT(SUCCEEDED(status));
+
+    PTHREAD pThread;
+    status = ThreadCreateEx("AdditionalChildThread",
+        ThreadPriorityDefault,
+        (PFUNC_ThreadStart)DummyThreadFunction,
+        NULL,
+        &pThread,
+        Process);
+    ASSERT(SUCCEEDED(status));
+    return 0;
+}
+
+PFUNC_ThreadStart
+CreateAdditionalThread(
+    void
+) {
+    STATUS status = STATUS_SUCCESS;
+    PPROCESS Process = GetCurrentProcess();
+
+    if (Process == NULL) {
+        status = STATUS_UNSUCCESSFUL;
+    }
+    ASSERT(SUCCEEDED(status));
+    PTHREAD pThread;
+    status = ThreadCreateEx("AdditionalThread",
+        ThreadPriorityDefault,
+        (PFUNC_ThreadStart)CreateAdditionalChildThread,
+        NULL,
+        &pThread,
+        Process);
+    ASSERT(SUCCEEDED(status));
+    return 0;
+}
+
+void
+(__cdecl CmdTestDescendents)(
+    IN          QWORD       NumberOfParameters
+    )
+{
+    STATUS status = STATUS_SUCCESS;
+    PPROCESS Process = GetCurrentProcess();
+
+    if (Process == NULL) {
+        status = STATUS_UNSUCCESSFUL;
+    }
+    ASSERT(SUCCEEDED(status));
+
+    ASSERT(NumberOfParameters == 0);
+
+    // The first thread should create 10 additional threads.
+    PTHREAD firstThread;
+    status = ThreadCreateEx("FirstThread",
+        ThreadPriorityDefault,
+        (PFUNC_ThreadStart)CreateTenThreads,
+        NULL,
+        &firstThread,
+        Process);
+    ASSERT(SUCCEEDED(status));
+    
+    // b.The second thread should create 1 additional thread: 
+    // i.This additional thread should also create another thread.
+    PTHREAD secondThread;
+    status = ThreadCreateEx("SecondThread",
+        ThreadPriorityDefault,
+        (PFUNC_ThreadStart)CreateAdditionalThread,
+        NULL,
+        &secondThread,
+        Process);
+    ASSERT(SUCCEEDED(status));
+    
+    // c.The third thread should not create any additional threads.
+    PTHREAD thirdThread;
+    status = ThreadCreateEx("ThirdThread",
+        ThreadPriorityDefault,
+        (PFUNC_ThreadStart)DummyThreadFunction,
+        NULL,
+        &thirdThread,
+        Process);
+    ASSERT(SUCCEEDED(status));
+
 }
 
 void
