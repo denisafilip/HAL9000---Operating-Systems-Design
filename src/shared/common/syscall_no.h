@@ -28,5 +28,8 @@ typedef enum _SYSCALL_ID
     SyscallIdFileRead,
     SyscallIdFileWrite,
 
+    // Userprog - 3
+    SyscallIdGetNumberOfThreadsInInterval,
+
     SyscallIdReserved = SyscallIdFileWrite + 1
 } SYSCALL_ID;

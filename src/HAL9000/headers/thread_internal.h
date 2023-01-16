@@ -295,3 +295,14 @@ void
 ThreadSetPriority(
     IN      THREAD_PRIORITY     NewPriority
     );
+
+// Userprog - 3
+PLOCK
+GetSystemCreateTimeThreadsLock(
+    void
+);
+
+PLIST_ENTRY
+GetSystemCreateTimeThreadsList(
+    void
+);

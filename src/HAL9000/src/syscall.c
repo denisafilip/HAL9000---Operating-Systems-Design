@@ -86,6 +86,14 @@ SyscallHandler(
                 (QWORD*)pSyscallParameters[3]
             );
             break;
+        // Userprog - 3
+        case SyscallIdGetNumberOfThreadsInInterval:
+            status = SyscallGetNumberOfThreadsInInterval(
+                (QWORD)pSyscallParameters[0],
+                (QWORD)pSyscallParameters[1],
+                (QWORD*)pSyscallParameters[2]
+            );
+            break;
         default:
             LOG_ERROR("Unimplemented syscall called from User-space!\n");
             status = STATUS_UNSUPPORTED;
@@ -216,8 +224,8 @@ SyscallFileWrite(
     IN  UM_HANDLE                   FileHandle,
     IN_READS_BYTES(BytesToWrite)
     PVOID                       Buffer,
-    IN  QWORD                       BytesToWrite,
-    OUT QWORD* BytesWritten
+    IN  QWORD                   BytesToWrite,
+    OUT QWORD*                  BytesWritten
 )
 {
     if (BytesWritten == NULL) {
@@ -231,5 +239,39 @@ SyscallFileWrite(
     }
 
     *BytesWritten = BytesToWrite;
+    return STATUS_SUCCESS;
+}
+
+// Userprog - 3
+STATUS 
+SyscallGetNumberOfThreadsInInterval(
+    IN QWORD StartCreateTime,
+    IN QWORD EndCreateTime,
+    OUT QWORD* NumberOfThreads
+) {
+    if (NumberOfThreads == NULL) {
+        LOGL("NumberOfThreads was NULL!\n");
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    QWORD numberOfthreadsInInterval = 0;
+    INTR_STATE oldState;
+    PLOCK CreateTimeThreadsLock = GetSystemCreateTimeThreadsLock();
+    LockAcquire(CreateTimeThreadsLock, &oldState);
+    PLIST_ENTRY CreateTimeThreadsList = GetSystemCreateTimeThreadsList();
+    LIST_ITERATOR it;
+    ListIteratorInit(CreateTimeThreadsList, &it);
+
+    PLIST_ENTRY pEntry;
+    while ((pEntry = ListIteratorNext(&it)) != NULL)
+    {
+        PTHREAD thread = CONTAINING_RECORD(pEntry, THREAD, CreationList);
+        if (thread->CreationTime > StartCreateTime && thread->CreationTime < EndCreateTime) {
+            numberOfthreadsInInterval++;
+        }
+    }
+    LockRelease(CreateTimeThreadsLock, oldState);
+    LOGL("There are %d threads in the interval [%d, %d].\n", numberOfthreadsInInterval, StartCreateTime, EndCreateTime);
+    *NumberOfThreads = numberOfthreadsInInterval;
     return STATUS_SUCCESS;
 }

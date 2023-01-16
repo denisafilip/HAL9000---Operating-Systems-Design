@@ -31,21 +31,40 @@ typedef struct _THREAD_SYSTEM_DATA
     LOCK                AllThreadsLock;
 
     _Guarded_by_(AllThreadsLock)
-    LIST_ENTRY          AllThreadsList;
+        LIST_ENTRY          AllThreadsList;
 
     LOCK                ReadyThreadsLock;
 
     _Guarded_by_(ReadyThreadsLock)
-    LIST_ENTRY          ReadyThreadsList;
+        LIST_ENTRY          ReadyThreadsList;
 
     // Threads - 1
     LOCK                CreateTimeThreadsLock;
 
     _Guarded_by_(CreateTimeThreadsLock)
-    LIST_ENTRY          CreateTimeThreadsList;
-} THREAD_SYSTEM_DATA, *PTHREAD_SYSTEM_DATA;
+        LIST_ENTRY          CreateTimeThreadsList;
+} THREAD_SYSTEM_DATA, * PTHREAD_SYSTEM_DATA;
 
 static THREAD_SYSTEM_DATA m_threadSystemData;
+
+// Userprog - 3
+PLOCK
+GetSystemCreateTimeThreadsLock(
+    void
+) {
+    return &m_threadSystemData.CreateTimeThreadsLock;
+}
+
+#pragma warning(push)
+#pragma warning(disable:26130)
+
+//_Requires_lock_held_(m_threadSystemData.CreateTimeThreadsLock)
+PLIST_ENTRY
+GetSystemCreateTimeThreadsList(
+    void
+) {
+    return &m_threadSystemData.CreateTimeThreadsList;
+}
 
 __forceinline
 static
@@ -827,6 +846,7 @@ _ThreadInit(
         pThread->Priority = Priority;
         // Threads - 1
         pThread->CreationTime = IomuGetSystemTimeUs();
+        LOGL("Thread was created at time %d.\n", pThread->CreationTime);
 
         // Threads - 2
         LockInit(&pThread->DescendentsLock);
