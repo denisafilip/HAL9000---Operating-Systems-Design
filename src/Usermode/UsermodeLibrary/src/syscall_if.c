@@ -206,3 +206,9 @@ SyscallGetNumberOfThreadsInInterval(
 ) {
     return SyscallEntry(SyscallIdGetNumberOfThreadsInInterval, StartCreateTime, EndCreateTime, NumberOfThreads);
 }
+
+// Virtual Memory - 2
+STATUS 
+SyscallSwapOut(
+    IN PVOID VirtualAddress
+);

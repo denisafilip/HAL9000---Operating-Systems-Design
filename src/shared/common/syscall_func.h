@@ -314,3 +314,9 @@ SyscallGetNumberOfThreadsInInterval(
     IN QWORD EndCreateTime,
     OUT QWORD* NumberOfThreads
 );
+
+// Virtual Memory - 2
+STATUS
+SyscallSwapOut(
+    IN PVOID VirtualAddress
+);

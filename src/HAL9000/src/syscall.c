@@ -115,6 +115,12 @@ SyscallHandler(
                 (VMM_FREE_TYPE)pSyscallParameters[2]
             );
             break;
+        // Virtual Memory - 2
+        case SyscallIdSwapOut:
+            status = SyscallSwapOut(
+                (PVOID)*pSyscallParameters
+            );
+            break;
         default:
             LOG_ERROR("Unimplemented syscall called from User-space!\n");
             status = STATUS_UNSUPPORTED;
@@ -348,5 +354,13 @@ SyscallVirtualFree(
         GetCurrentProcess()->VaSpace,
         GetCurrentProcess()->PagingData
     );
+    return STATUS_SUCCESS;
+}
+
+// Virtual Memory - 2
+STATUS 
+SyscallSwapOut(
+    IN PVOID VirtualAddress
+) {
     return STATUS_SUCCESS;
 }
