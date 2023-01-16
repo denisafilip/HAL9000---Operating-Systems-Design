@@ -507,6 +507,10 @@ _ProcessInit(
         InitializeListHead(&pProcess->ThreadList);
         LockInit(&pProcess->ThreadListLock);
 
+        // Virtual Memory - 3
+        InitializeListHead(&pProcess->FrameMappingsHead);
+        LockInit(&pProcess->FrameMapLock);
+
         // Do this as late as possible - we want to interfere as little as possible
         // with the system management in case something goes wrong (PID + full process
         // list management)

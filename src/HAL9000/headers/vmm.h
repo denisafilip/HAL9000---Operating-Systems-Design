@@ -307,3 +307,9 @@ VmmIsBufferValid(
     IN          PVMM_RESERVATION_SPACE              ReservationSpace,
     IN          BOOLEAN                             KernelAccess
     );
+
+// Virtual Address - 3
+void
+VmmTick(
+    void
+);

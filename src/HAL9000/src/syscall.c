@@ -362,5 +362,6 @@ STATUS
 SyscallSwapOut(
     IN PVOID VirtualAddress
 ) {
+    UNREFERENCED_PARAMETER(VirtualAddress);
     return STATUS_SUCCESS;
 }

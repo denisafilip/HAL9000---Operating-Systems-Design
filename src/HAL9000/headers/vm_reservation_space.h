@@ -27,6 +27,9 @@ typedef struct _VMM_RESERVATION_SPACE
 
     _Guarded_by_(ReservationLock)
     struct _VMM_RESERVATION*    ReservationList;
+
+    // Virtual Memory - 3
+    PPROCESS            Process;
 } VMM_RESERVATION_SPACE, *PVMM_RESERVATION_SPACE;
 
 //******************************************************************************
