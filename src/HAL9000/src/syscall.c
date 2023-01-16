@@ -9,6 +9,8 @@
 #include "dmp_cpu.h"
 #include "thread.h"
 #include "thread_internal.h"
+// Virtual Memory - 1
+#include "vmm.h"
 
 extern void SyscallEntry();
 
@@ -92,6 +94,25 @@ SyscallHandler(
                 (QWORD)pSyscallParameters[0],
                 (QWORD)pSyscallParameters[1],
                 (QWORD*)pSyscallParameters[2]
+            );
+            break;
+        // Virtual Memory - 1
+        case SyscallIdVirtualAlloc:
+            status = SyscallVirtualAlloc(
+                (PVOID)pSyscallParameters[0],
+                (QWORD)pSyscallParameters[1],
+                (VMM_ALLOC_TYPE)pSyscallParameters[2],
+                (PAGE_RIGHTS)pSyscallParameters[3],
+                (UM_HANDLE)pSyscallParameters[4],
+                (QWORD)pSyscallParameters[5],
+                (PVOID*)pSyscallParameters[6]
+            );
+            break;
+        case SyscallIdVirtualFree:
+            status = SyscallVirtualFree(
+                (PVOID)pSyscallParameters[0],
+                (QWORD)pSyscallParameters[1],
+                (VMM_FREE_TYPE)pSyscallParameters[2]
             );
             break;
         default:
@@ -273,5 +294,59 @@ SyscallGetNumberOfThreadsInInterval(
     LockRelease(CreateTimeThreadsLock, oldState);
     LOGL("There are %d threads in the interval [%d, %d].\n", numberOfthreadsInInterval, StartCreateTime, EndCreateTime);
     *NumberOfThreads = numberOfthreadsInInterval;
+    return STATUS_SUCCESS;
+}
+
+// Virtual Memory - 1
+STATUS
+SyscallVirtualAlloc(
+    IN_OPT      PVOID                   BaseAddress,
+    IN          QWORD                   Size,
+    IN          VMM_ALLOC_TYPE          AllocType,
+    IN          PAGE_RIGHTS             PageRights,
+    IN_OPT      UM_HANDLE               FileHandle,
+    IN_OPT      QWORD                   Key,
+    OUT         PVOID* AllocatedAddress
+) {
+    UNREFERENCED_PARAMETER(FileHandle);
+    UNREFERENCED_PARAMETER(Key);
+
+    PPROCESS currentProcess = GetCurrentProcess();
+
+    if (currentProcess == NULL) {
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    *AllocatedAddress = VmmAllocRegionEx(
+        BaseAddress,
+        Size,
+        AllocType,
+        PageRights,
+        FALSE,
+        NULL,
+        currentProcess->VaSpace,
+        currentProcess->PagingData,
+        NULL
+    );
+    return STATUS_SUCCESS;
+}
+
+STATUS
+SyscallVirtualFree(
+    IN          PVOID                   Address,
+    _When_(VMM_FREE_TYPE_RELEASE == FreeType, _Reserved_)
+    _When_(VMM_FREE_TYPE_RELEASE != FreeType, IN)
+    QWORD                   Size,
+    IN          VMM_FREE_TYPE           FreeType
+)
+{
+    VmmFreeRegionEx(
+        Address,
+        Size,
+        FreeType,
+        TRUE,
+        GetCurrentProcess()->VaSpace,
+        GetCurrentProcess()->PagingData
+    );
     return STATUS_SUCCESS;
 }
