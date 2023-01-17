@@ -22,6 +22,12 @@ typedef enum _SYSCALL_ID
     SyscallIdVirtualAlloc,
     SyscallIdVirtualFree,
 
+    //Review Problems - Userprog - 4
+    SyscallIdMemset,
+
+    //Review Problems - Userprog - 6
+    SyscallIdDisableSyscalls,
+
     // File management
     SyscallIdFileCreate,
     SyscallIdFileClose,
@@ -30,12 +36,6 @@ typedef enum _SYSCALL_ID
 
     SyscallIdProcessGetNumberOfPages,
     SyscallIdReadMemory,
-
-    //Review Problems - Userprog - 4
-    SyscallIdMemset,
-
-    //Review Problems - Userprog - 6
-    SyscallIdDisableSyscalls,
 
     SyscallIdReserved = SyscallIdFileWrite + 1
 } SYSCALL_ID;
