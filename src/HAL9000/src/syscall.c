@@ -446,6 +446,12 @@ SyscallMemset(
         return STATUS_UNSUCCESSFUL;
     }
 
+    STATUS status = MmuIsBufferValid((PBYTE)Address, BytesToWrite, PAGE_RIGHTS_READ, GetCurrentProcess());
+    if (!SUCCEEDED(status))
+    {
+        return status;
+    }
+
     memset(Address, ValueToWrite, BytesToWrite);
 
     return STATUS_SUCCESS;

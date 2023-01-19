@@ -196,7 +196,7 @@ PmmReserveMemoryEx(
     
     //Review Problems - VirtualMemory - 2
     /*LOG("Reserved %d physical frames, from 0x%X to 0x%x!\n",
-        NoOfFrames, ((QWORD)idx * PAGE_SIZE), ((QWORD)(idx * PAGE_SIZE + NoOfFrames * PAGE_SIZE)));*/
+        NoOfFrames, ((QWORD)idx * PAGE_SIZE), ((QWORD)(idx + (QWORD)NoOfFrames) * PAGE_SIZE - 1));*/
 
     /*LOG("Reserved physical frames from 0x%X of size 0x%X on behalf of [%s] process\n",
         idx * PAGE_SIZE, ((QWORD)NoOfFrames * PAGE_SIZE),
